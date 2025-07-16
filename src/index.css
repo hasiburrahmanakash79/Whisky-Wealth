@@ -1,0 +1,19 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-inter: "Inter", "sans-serif";
+}
+
+@plugin "daisyui" {
+    themes: dark -- light, light -- light;
+  }
+
+  @layer utilities {
+  .text-primary-gradient {
+    @apply font-semibold bg-gradient-to-l from-[#8272e8] to-[#b15fdd] bg-clip-text text-transparent;
+  }
+  .btn-primary {
+    @apply text-white px-5 py-3 rounded-md cursor-pointer bg-blue-500 hover:shadow-lg hover:bg-blue-600;
+  }
+}
