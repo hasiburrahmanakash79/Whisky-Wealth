@@ -6,13 +6,14 @@ import Dashboard from "../Layouts/Dashboard";
 import Setting from "../Pages/Dashboards/Setting/Setting";
 import ResetPass from "../Pages/Authentication/ResetPass";
 import Home from "../Pages/Dashboards/Home/Home";
-// import Notifications from "../Pages/Dashboards/Notification/Notification";
+import Notifications from "../Pages/Dashboards/Notification/Notification";
 import ProfileInformation from "../Pages/Dashboards/Setting/ProfileInfo";
 import Users from "../Pages/Dashboards/Users/Users";
 import Challenge from "../Pages/Dashboards/Challenge/Challenge";
 import PrivacyPolicy from "../Pages/Dashboards/Setting/PrivacyPolicy";
 import ForgetPassword from "../Pages/Authentication/ForgetPassword";
 import Offers from "../Pages/Dashboards/Offers/Offers";
+import Referrals from "../Pages/Dashboards/Referrals/Referrals";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -31,8 +32,12 @@ const router = createBrowserRouter([
         element: <Offers />,
       },
       {
-        path: "/challenge",
-        element: <Challenge />,
+        path: "/referrals",
+        element: <Referrals />,
+      },
+      {
+        path: "/notifications",
+        element: <Notifications />,
       },
       {
         path: "/setting",

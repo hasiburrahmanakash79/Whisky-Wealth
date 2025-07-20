@@ -6,16 +6,6 @@ import { useNavigate } from "react-router-dom";
 
 const initialNotifications = [
   {
-    id: 1,
-    title: "LeadPilot AI",
-    message:
-      "Property details for Linda Sanders have been collected and are ready for review.",
-    time: "5h ago",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6270dcb52a53a65bc96c6dae/ee43aff3-f27d-409f-b5be-a53dd7f494e0/image-asset.jpeg",
-    read: false,
-  },
-  {
     id: 2,
     title: "New Lead Assigned",
     message: "A new lead has been assigned to you: Robert Johnson.",
@@ -126,25 +116,21 @@ const Notifications = () => {
     <div className="">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3 mb-6">
-          <button className="text-2xl cursor-pointer" onClick={() => navigate(-1)}>
+          <button
+            className="text-2xl cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
             <RiArrowLeftLine />
           </button>
           <h1 className="text-2xl font-semibold">Notification</h1>
         </div>
-        <button
-          onClick={markAllAsRead}
-          className="text-blue-500 flex items-center gap-1"
-        >
-          <FaCheck className="text-sm" />
-          Mark all as read
-        </button>
       </div>
 
       <div className="">
         {notifications.map((item) => (
           <div
             key={item.id}
-            className={`flex gap-4 py-4 cursor-pointer hover:bg-blue-100 transform duration-200 border-b border-gray-100 px-5 ${
+            className={`flex gap-4 py-4 cursor-pointer hover:bg-[#B8860B]/5 transform duration-200 border-b border-gray-100 px-5 ${
               item.read ? "text-gray-500" : "font-semibold"
             }`}
             onClick={() => handleClickNotification(item)}
@@ -153,7 +139,7 @@ const Notifications = () => {
             <div className="flex-1">
               <button
                 onClick={() => handleView(item)}
-                className="hover:text-blue-500"
+                className="hover:text-[#B8860B]"
               >
                 {item.title}
               </button>
@@ -166,8 +152,14 @@ const Notifications = () => {
         ))}
       </div>
 
-      <div className="mt-6 text-center text-sm text-blue-600 cursor-pointer">
-        View all notification
+      <div className="place-content-center place-items-center text-sm text-blue-600 cursor-pointer mt-10">
+        <button
+          onClick={markAllAsRead}
+          className="text-[#B8860B] flex items-center gap-1"
+        >
+          <FaCheck className="text-sm" />
+          Mark all as read
+        </button>
       </div>
 
       {/* ✅ Modal with selected data */}
