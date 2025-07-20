@@ -89,8 +89,10 @@ const Offers = () => {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [tokenToDelete, setTokenToDelete] = useState(null);
   const [selectedToken, setSelectedToken] = useState(null);
+  const [newOffer, setNewOffer] = useState({});
 
   const handleEdit = (token) => {
     setSelectedToken(token);
@@ -114,6 +116,13 @@ const Offers = () => {
     // TODO: Remove token from list or trigger API call here
     setIsDeleteModalOpen(false);
     setTokenToDelete(null);
+  };
+
+  const handleAddOffer = () => {
+    console.log("New Offer Submitted:", newOffer);
+    setIsAddModalOpen(false);
+    setNewOffer({});
+    // TODO: Push newOffer to your list or call an API
   };
 
   return (
@@ -149,7 +158,10 @@ const Offers = () => {
             <Search className="w-5 h-5" />
           </span>
         </div>
-        <button className="flex items-center gap-2 bg-[#B8860B] text-white px-4 py-2 rounded-lg ml-4 hover:bg-[#a0730b] transition">
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 bg-[#B8860B] text-white px-4 py-2 rounded-lg ml-4 hover:bg-[#a0730b] transition"
+        >
           <Plus className="w-5 h-5" />
           Add Offer
         </button>
@@ -188,7 +200,7 @@ const Offers = () => {
                     </p>
                   </td>
                   <td className="py-3 px-4">{user?.Deadline || "N/A"}</td>
-                  <td className="py-3 px-4 flex items-center justify-center gap-5">
+                  <td className="py-3 px-4 flex items-center justify-center gap-5 text-xl">
                     <button onClick={() => handleEdit(user)}>
                       <RiEditBoxLine className="cursor-pointer" />
                     </button>
@@ -295,6 +307,206 @@ const Offers = () => {
                 </div>
               </div>
             )}
+          </CommonModal>
+
+          <CommonModal
+            isOpen={isAddModalOpen}
+            onClose={() => {
+              setIsAddModalOpen(false);
+              setNewOffer({});
+            }}
+            title="Add Offer"
+          >
+            <div className="space-y-4 text-sm">
+              {/* Type */}
+              <div>
+                <label className="block mb-1 font-medium">Type</label>
+                <select
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={newOffer.type || ""}
+                  onChange={(e) =>
+                    setNewOffer({ ...newOffer, type: e.target.value })
+                  }
+                >
+                  <option value="" disabled>
+                    Select Type
+                  </option>
+                  <option value="Cask">Cask</option>
+                  <option value="Tour">Tour</option>
+                  <option value="Event">Event</option>
+                  <option value="Ownership">Ownership</option>
+                  <option value="Investment">Investment</option>
+                </select>
+              </div>
+
+              {/* Upload Image */}
+              <div>
+                <label className="block mb-1 font-medium">Upload Image</label>
+                <input
+                  type="file"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+
+              {/* Cask Type */}
+              <div>
+                <label className="block mb-1 font-medium">Cask Type</label>
+                <input
+                  type="text"
+                  placeholder="Sherry Hogshead"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={newOffer.caskType || ""}
+                  onChange={(e) =>
+                    setNewOffer({ ...newOffer, caskType: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Distillery & Description */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-medium">Distillery</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={newOffer.distillery || ""}
+                    onChange={(e) =>
+                      setNewOffer({ ...newOffer, distillery: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">Description</label>
+                  <input
+                    type="text"
+                    placeholder="Write here"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={newOffer.description || ""}
+                    onChange={(e) =>
+                      setNewOffer({ ...newOffer, description: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Vintage Year, ABV, Volume */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block mb-1 font-medium">Vintage Year</label>
+                  <input
+                    type="number"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={newOffer.vintageYear || ""}
+                    onChange={(e) =>
+                      setNewOffer({ ...newOffer, vintageYear: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">ABV (%)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={newOffer.abv || ""}
+                    onChange={(e) =>
+                      setNewOffer({ ...newOffer, abv: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">Volume (L)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={newOffer.volume || ""}
+                    onChange={(e) =>
+                      setNewOffer({ ...newOffer, volume: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Storage Location */}
+              <div>
+                <label className="block mb-1 font-medium">
+                  Storage Location
+                </label>
+                <input
+                  type="text"
+                  placeholder="Speyside Warehouse A"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={newOffer.storage || ""}
+                  onChange={(e) =>
+                    setNewOffer({ ...newOffer, storage: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Valuation */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-medium">
+                    Purchase Value ($)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={newOffer.purchaseValue || ""}
+                    onChange={(e) =>
+                      setNewOffer({
+                        ...newOffer,
+                        purchaseValue: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">
+                    Current Value ($)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={newOffer.currentValue || ""}
+                    onChange={(e) =>
+                      setNewOffer({ ...newOffer, currentValue: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Deadline */}
+              <div>
+                <label className="block mb-1 font-medium">Deadline</label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={newOffer.deadline || ""}
+                  onChange={(e) =>
+                    setNewOffer({ ...newOffer, deadline: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center gap-4 pt-6">
+                <button
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    setNewOffer({});
+                  }}
+                  className="px-6 py-2 border border-[#B8860B] rounded-lg hover:bg-gray-100 w-full"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddOffer}
+                  className="px-6 py-2 bg-[#B8860B] text-white rounded-lg hover:bg-[#a0730b] w-full"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
           </CommonModal>
         </div>
       </div>
