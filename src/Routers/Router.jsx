@@ -11,8 +11,8 @@ import ProfileInformation from "../Pages/Dashboards/Setting/ProfileInfo";
 import Users from "../Pages/Dashboards/Users/Users";
 import Challenge from "../Pages/Dashboards/Challenge/Challenge";
 import PrivacyPolicy from "../Pages/Dashboards/Setting/PrivacyPolicy";
-import Tokens from "../Pages/Dashboards/Tokens/Tokens";
 import ForgetPassword from "../Pages/Authentication/ForgetPassword";
+import Offers from "../Pages/Dashboards/Offers/Offers";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -27,8 +27,8 @@ const router = createBrowserRouter([
         element: <Users />,
       },
       {
-        path: "/token",
-        element: <Tokens />,
+        path: "/offers",
+        element: <Offers />,
       },
       {
         path: "/challenge",

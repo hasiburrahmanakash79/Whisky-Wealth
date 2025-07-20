@@ -1,7 +1,5 @@
 import DashboardCard from './DashboardCard';
 import RecentUser from './RecentUser';
-import WeeklyActivity from './WeeklyActivity';
-import RecentToken from './RecentToken';
 import GrowthOverviewChart from './GrowthOverviewChart';
 import UserActivityChart from './UserActivityChart';
 
