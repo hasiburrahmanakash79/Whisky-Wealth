@@ -13,6 +13,7 @@ import PrivacyPolicy from "../Pages/Dashboards/Setting/PrivacyPolicy";
 import ForgetPassword from "../Pages/Authentication/ForgetPassword";
 import Offers from "../Pages/Dashboards/Offers/Offers";
 import Referrals from "../Pages/Dashboards/Referrals/Referrals";
+import Orders from "../Pages/Dashboards/Orders/Orders";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "/offers",
         element: <Offers />,
+      },
+      {
+        path: "/orders",
+        element: <Orders />,
       },
       {
         path: "/referrals",

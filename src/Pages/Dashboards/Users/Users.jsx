@@ -93,7 +93,7 @@ const Users = () => {
 
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl p-5">
-      <h2 className="text-2xl font-semibold mb-5">Recent User</h2>
+      <h2 className="text-2xl font-semibold mb-5">Users</h2>
       <table className="min-w-full rounded-xl text-center overflow-hidden">
         <thead>
           <tr className="text-sm  bg-[#B8860B] text-white">
