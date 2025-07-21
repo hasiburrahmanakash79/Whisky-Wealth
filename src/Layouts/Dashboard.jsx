@@ -1,7 +1,7 @@
 import logo from "../assets/logo/logo.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { BiHomeAlt2 } from "react-icons/bi";
-import { RiSettings4Line, RiFlagLine, RiFileList3Line, RiUserCommunityLine, RiNotification2Line } from "react-icons/ri";
+import { RiSettings4Line, RiFlagLine, RiGiftLine , RiUserCommunityLine, RiNotification2Line, RiUserFollowLine,RiShoppingCartLine  } from "react-icons/ri";
 import { FaRightFromBracket } from "react-icons/fa6";
 import { IconContext } from "react-icons";
 import Swal from "sweetalert2";
@@ -28,9 +28,10 @@ const Dashboard = () => {
     Home: BiHomeAlt2,
     User: RiUserCommunityLine,
     Settings: RiSettings4Line,
-    Quote: RiFileList3Line,
+    Offer: RiGiftLine ,
     Challenge: RiFlagLine,
-    Referrals: RiFlagLine,
+    Referrals: RiUserFollowLine ,
+    orders: RiShoppingCartLine  ,
     Notification: RiNotification2Line,
   };
 
@@ -51,19 +52,19 @@ const Dashboard = () => {
     {
       title: "Offers",
       path: "/offers",
-      icon: iconMappings.Quote,
+      icon: iconMappings.Offer,
       role: "admin",
     },
     {
       title: "Orders",
       path: "/orders",
-      icon: iconMappings.Quote,
+      icon: iconMappings.orders,
       role: "admin",
     },
     {
       title: "Referrals",
       path: "/referrals",
-      icon: iconMappings.Quote,
+      icon: iconMappings.Referrals,
       role: "admin",
     },
     {
