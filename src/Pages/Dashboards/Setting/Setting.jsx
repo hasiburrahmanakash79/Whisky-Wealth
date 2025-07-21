@@ -114,7 +114,7 @@ const Setting = () => {
       <div className="space-y-5">
         <Link
           to="/setting/profile"
-          className="bg-[#B7C8FF] p-5 rounded-lg flex justify-between items-center w-full px-7"
+          className="bg-[#E4D8B3] p-5 rounded-lg flex justify-between items-center w-full px-7"
         >
           <p>Personal Information</p>
           <IoChevronForwardSharp />
@@ -122,7 +122,7 @@ const Setting = () => {
 
         <button
           onClick={() => setShowPasswordModal(true)}
-          className="bg-[#B7C8FF] p-5 rounded-lg flex justify-between items-center w-full px-7"
+          className="bg-[#E4D8B3] p-5 rounded-lg flex justify-between items-center w-full px-7"
         >
           <p>Change Password</p>
           <IoChevronForwardSharp />
@@ -130,7 +130,7 @@ const Setting = () => {
 
         <Link
           to="/setting/privacy"
-          className="bg-[#B7C8FF] p-5 rounded-lg flex justify-between items-center w-full px-7"
+          className="bg-[#E4D8B3] p-5 rounded-lg flex justify-between items-center w-full px-7"
         >
           <p>Privacy & Policy</p>
           <IoChevronForwardSharp />
@@ -171,7 +171,7 @@ const Setting = () => {
             className="w-full border border-gray-300 p-3 rounded"
           />
 
-          <button onClick={handleSave} className="w-full btn-primary">
+          <button onClick={handleSave} className="w-full bg-[#B8860B] text-white px-4 py-2 rounded-lg  hover:bg-[#a0730b] transition">
             Update Password
           </button>
         </div>
@@ -200,7 +200,7 @@ const Setting = () => {
                 ref={(el) => (inputRefs.current[index] = el)}
                 onChange={(e) => handleInputChange(e, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                className="w-12 h-12 text-center border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg"
+                className="w-12 h-12 text-center border border-[#E4D8B3] rounded-md focus:outline-none focus:ring-2 focus:ring-[#a0730b] text-lg"
               />
             ))}
           </div>
@@ -221,7 +221,7 @@ const Setting = () => {
               <button
                 type="button"
                 onClick={handleResendOtp}
-                className="text-blue-500 hover:underline"
+                className="text-[#E4D8B3] hover:underline"
               >
                 Resend OTP
               </button>
@@ -233,7 +233,7 @@ const Setting = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full btn-primary"
+            className="w-full bg-[#B8860B] text-white px-4 py-2 rounded-lg   hover:bg-[#a0730b] transition"
           >
             {isSubmitting ? "Verifying..." : "Verify OTP"}
           </button>

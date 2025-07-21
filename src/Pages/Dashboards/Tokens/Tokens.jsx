@@ -122,7 +122,7 @@ const Tokens = () => {
 
       <table className="min-w-full rounded-xl text-left overflow-hidden">
         <thead>
-          <tr className="text-sm  bg-[#B7C8FF]">
+          <tr className="text-sm  bg-[#E4D8B3]">
             <th className="p-4"></th>
             <th className="p-4">Username</th>
             <th className="p-4">Email</th>

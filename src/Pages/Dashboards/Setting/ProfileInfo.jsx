@@ -57,7 +57,7 @@ const ProfileInformation = () => {
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="bg-blue-500 text-white py-2 px-4 rounded flex items-center gap-2"
+            className="bg-[#B8860B] text-white py-2 px-4 rounded flex items-center gap-2"
           >
             ✎ Edit Profile
           </button>
@@ -66,7 +66,7 @@ const ProfileInformation = () => {
 
       <div className="flex flex-col lg:flex-row gap-6 py-5 px-20">
         {/* Left (Profile Image & Role) */}
-        <div className="w-full lg:w-1/4 flex flex-col items-center  bg-[#B7C8FF] border border-blue-300 p-14 rounded-md relative">
+        <div className="w-full lg:w-1/4 flex flex-col items-center  bg-[#E4D8B3] border border-[#E4D8B3] p-14 rounded-md relative">
           <div className="relative">
             <img
               src={formData.profileImage}
@@ -104,7 +104,7 @@ const ProfileInformation = () => {
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
               disabled={!isEditing}
-              className="w-full  bg-[#B7C8FF] rounded-lg p-5 outline-none"
+              className="w-full  bg-[#E4D8B3] rounded-lg p-5 outline-none"
             />
           </div>
 
@@ -115,7 +115,7 @@ const ProfileInformation = () => {
               value={formData.email}
               onChange={(e) => handleChange("email", e.target.value)}
               disabled={!isEditing}
-              className="w-full  bg-[#B7C8FF] rounded-lg p-5 outline-none"
+              className="w-full  bg-[#E4D8B3] rounded-lg p-5 outline-none"
             />
           </div>
 
@@ -129,7 +129,7 @@ const ProfileInformation = () => {
               inputClass="!w-full p-7 rounded-lg"
               containerClass="!w-full"
               inputStyle={{
-                backgroundColor: "#B7C8FF",
+                backgroundColor: "#E4D8B3",
                 border: 0,
               }}
             />
@@ -141,7 +141,7 @@ const ProfileInformation = () => {
         <div className="flex justify-end mt-6">
           <button
             type="submit"
-            className="bg-blue-500 text-white px-6 py-2 rounded"
+            className="bg-[#B8860B] text-white px-6 py-2 rounded"
           >
             Save Info
           </button>

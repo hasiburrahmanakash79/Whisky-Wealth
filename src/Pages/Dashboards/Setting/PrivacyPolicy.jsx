@@ -129,7 +129,7 @@ const PrivacyPolicy = () => {
             theme="snow"
             modules={modules}
             placeholder="Write your privacy policy here..."
-            className="quill-custom bg-blue-100 text-black"
+            className="quill-custom bg-[#E4D8B3] text-black"
           />
         )}
       </div>
@@ -140,7 +140,7 @@ const PrivacyPolicy = () => {
           <button
             type="button"
             onClick={handleEditClick}
-            className="btn-primary"
+            className="bg-[#B8860B] text-white px-4 py-2 rounded-lg  hover:bg-[#a0730b] transition"
           >
             ✎ Edit
           </button>
@@ -150,7 +150,7 @@ const PrivacyPolicy = () => {
         <div className="flex justify-end px-5 pb-5">
           <button
             type="submit"
-            className="btn-primary"
+            className="bg-[#B8860B] text-white px-4 py-2 rounded-lg  hover:bg-[#a0730b] transition"
           >
             Update Info
           </button>

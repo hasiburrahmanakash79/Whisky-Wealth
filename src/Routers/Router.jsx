@@ -9,7 +9,6 @@ import Home from "../Pages/Dashboards/Home/Home";
 import Notifications from "../Pages/Dashboards/Notification/Notification";
 import ProfileInformation from "../Pages/Dashboards/Setting/ProfileInfo";
 import Users from "../Pages/Dashboards/Users/Users";
-import Challenge from "../Pages/Dashboards/Challenge/Challenge";
 import PrivacyPolicy from "../Pages/Dashboards/Setting/PrivacyPolicy";
 import ForgetPassword from "../Pages/Authentication/ForgetPassword";
 import Offers from "../Pages/Dashboards/Offers/Offers";
