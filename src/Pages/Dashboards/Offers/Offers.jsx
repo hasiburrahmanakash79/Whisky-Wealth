@@ -247,7 +247,7 @@ const Offers = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Status:</span>
                   <select
-                    className="border rounded-md px-4 py-2 w-[150px]"
+                    className="border border-gray-200 rounded-md px-4 py-2 w-[150px]"
                     value={selectedToken.status}
                     onChange={(e) =>
                       setSelectedToken({

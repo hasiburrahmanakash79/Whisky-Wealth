@@ -223,7 +223,7 @@ const Orders = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Status:</span>
                   <select
-                    className="border rounded-md px-4 py-2 w-[150px]"
+                    className="border border-gray-200 rounded-md px-4 py-2 w-[150px]"
                     value={selectedToken.status}
                     onChange={(e) =>
                       setSelectedToken({
@@ -232,8 +232,10 @@ const Orders = () => {
                       })
                     }
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancel">Cancel</option>
                   </select>
                 </div>
 

@@ -161,7 +161,7 @@ const Users = () => {
             <div className="flex justify-between items-center">
               <span className="font-semibold">Status:</span>
               <select
-                className="border border-base-200 outline-none rounded-md px-4 py-2 w-[150px]"
+                className="border border-gray-200 outline-none rounded-md px-4 py-2 w-[150px]"
                 value={selectedToken.status}
                 onChange={(e) =>
                   setSelectedToken({ ...selectedToken, status: e.target.value })

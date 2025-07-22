@@ -233,7 +233,7 @@ const Referrals = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Status:</span>
                   <select
-                    className="border rounded-md px-4 py-2 w-[150px]"
+                    className="border border-gray-200 rounded-md px-4 py-2 w-[150px]"
                     value={selectedToken.status}
                     onChange={(e) =>
                       setSelectedToken({
@@ -308,7 +308,7 @@ const Referrals = () => {
               <div>
                 <label className="block mb-1 font-medium">Type</label>
                 <select
-                  className="w-full border border-gray-300 rounded-md p-2"
+                  className="w-full border border-gray-200 rounded-md p-2"
                   value={newOffer.type || ""}
                   onChange={(e) =>
                     setNewOffer({ ...newOffer, type: e.target.value })
