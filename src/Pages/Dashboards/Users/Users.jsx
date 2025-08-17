@@ -1,223 +1,371 @@
-import { useState } from "react";
-import { RiDeleteBin5Line, RiEditBoxLine } from "react-icons/ri";
-import CommonModal from "../../../components/Common/CommonModal";
+"use client"
+
+import { useState } from "react"
+import { RiDeleteBin5Line, RiEditBoxLine, RiSearchLine, RiRefreshLine } from "react-icons/ri"
+import useUserData from "../../../hook/useUserData"
+import apiClient from "../../../lib/api-client"
+import CommonModal from "../../../components/Common/CommonModal"
 
 const Users = () => {
-  const users = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      casks: "10",
-      status: "Active",
-      role: "User",
-    },
-    {
-      id: 2,
-      name: "Jane Doe",
-      email: "jane@example.com",
-      casks: "21",
-      status: "Active",
-      role: "Admin",
-    },
-    {
-      id: 3,
-      name: "Bob Smith",
-      email: "bob@example.com",
-      casks: "32",
-      status: "Inactive",
-      role: "User",
-    },
-    {
-      id: 4,
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      casks: "43",
-      status: "Active",
-      role: "User",
-    },
-    {
-      id: 5,
-      name: "Mike Brown",
-      email: "mike@example.com",
-      casks: "54",
-      status: "Inactive",
-      role: "Moderator",
-    },
-    {
-      id: 6,
-      name: "Emily Davis",
-      email: "emily@example.com",
-      casks: "65",
-      status: "Active",
-      role: "User",
-    },
-    {
-      id: 7,
-      name: "David Lee",
-      email: "david@example.com",
-      casks: "76",
-      status: "Active",
-      role: "User",
-    },
-  ];
+  const {
+    users,
+    loading,
+    error,
+    page,
+    limit,
+    search,
+    totalPages,
+    totalUsers,
+    updatePage,
+    updateLimit,
+    updateSearch,
+    refetch,
+  } = useUserData(1, 20, "")
 
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [tokenToDelete, setTokenToDelete] = useState(null);
-  const [selectedToken, setSelectedToken] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [tokenToDelete, setTokenToDelete] = useState(null)
+  const [selectedToken, setSelectedToken] = useState(null)
 
-  const handleEdit = (token) => {
-    setSelectedToken(token);
-    setIsEditModalOpen(true);
-  };
+  const handleSearchChange = (e) => {
+    updateSearch(e.target.value)
+  }
 
-  const handleUpdateToken = () => {
-    console.log("Updated token:", selectedToken);
-    setIsEditModalOpen(false);
-    setSelectedToken(null);
-    // TODO: Update the token in your list or via API
-  };
+  const handleEdit = (user) => {
+    setSelectedToken(user)
+    setIsEditModalOpen(true)
+  }
 
-  const handleDeleteClick = (token) => {
-    setTokenToDelete(token);
-    setIsDeleteModalOpen(true);
-  };
+  const handleUpdateToken = async () => {
+    if (!selectedToken) return
+    try {
+      await apiClient.put(`/users/${selectedToken.id}`, {
+        isActive: selectedToken.status === "Active",
+      })
+      setIsEditModalOpen(false)
+      setSelectedToken(null)
+      refetch()
+    } catch (err) {
+      console.error("Failed to update user:", err.message)
+    }
+  }
 
-  const confirmDelete = () => {
-    console.log("Deleted user:", tokenToDelete);
-    // TODO: Remove token from list or trigger API call here
-    setIsDeleteModalOpen(false);
-    setTokenToDelete(null);
-  };
+  const handleDeleteClick = (user) => {
+    setTokenToDelete(user)
+    setIsDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!tokenToDelete) return
+    try {
+      await apiClient.delete(`/users/${tokenToDelete.id}`)
+      setIsDeleteModalOpen(false)
+      setTokenToDelete(null)
+      refetch()
+    } catch (err) {
+      console.error("Failed to delete user:", err.message)
+    }
+  }
 
   return (
-    <div className="overflow-x-auto border border-gray-200 rounded-xl p-5">
-      <h2 className="text-2xl font-semibold mb-5">Users</h2>
-      <table className="min-w-full rounded-xl text-center overflow-hidden">
-        <thead>
-          <tr className="text-sm  bg-[#B8860B] text-white">
-            <th className="p-4 text-left">User Name</th>
-            <th className="p-4">Email</th>
-            <th className="p-4">Casks</th>
-            <th className="p-4">Status</th>
-            <th className="p-4">Action</th>
-          </tr>
-        </thead>
-        <tbody className="text-sm text-center">
-          {users?.map((user, idx) => (
-            <tr key={idx} className="border-t border-gray-200">
-              <td className="py-3 px-4 text-left">{user?.name || "N/A"}</td>
-              <td className="py-4 px-4">{user?.email}</td>
-              <td className="py-3 px-4">{user?.casks || "N/A"}</td>
-              <td className={`py-3 px-4 `}>
-                <p
-                  className={`p-2 rounded-full text-white ${
-                    user.status === "Active" ? "bg-green-500 " : "bg-slate-500"
-                  }`}
-                >
-                  {user?.status}
-                </p>
-              </td>
-              <td className="py-6 px-4 flex items-center justify-center  gap-5 text-xl">
-                <button onClick={() => handleEdit(user)}>
-                  <RiEditBoxLine className="cursor-pointer" />
-                </button>
-                <button onClick={() => handleDeleteClick(user)}>
-                  <RiDeleteBin5Line className="text-red-500 hover:text-red-700 transition cursor-pointer" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Header Section */}
+      <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Users Management</h2>
+            <p className="text-gray-600 text-sm">Manage and monitor user accounts</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-[#B8860B] text-white px-4 py-2 rounded-lg text-sm font-medium">
+              Total: {totalUsers || 0}
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* Controls Section */}
+      <div className="px-8 py-6 bg-gray-50 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="relative flex-1 max-w-md">
+            <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
+            <input
+              type="text"
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Search users by name or email..."
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-[#B8860B] transition-all duration-200 bg-white shadow-sm"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={limit}
+              onChange={(e) => updateLimit(Number(e.target.value))}
+              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-[#B8860B] bg-white shadow-sm font-medium"
+            >
+              <option value={10}>10 per page</option>
+              <option value={20}>20 per page</option>
+              <option value={50}>50 per page</option>
+            </select>
+            <button
+              onClick={refetch}
+              className="flex items-center gap-2 px-4 py-3 bg-[#B8860B] text-white rounded-xl hover:bg-[#a0730b] transition-all duration-200 shadow-sm font-medium"
+            >
+              <RiRefreshLine className="text-lg" />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="px-8 py-6">
+        {/* Loading and Error States */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B8860B]"></div>
+            <span className="ml-3 text-gray-600 font-medium">Loading users...</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <div className="text-red-600 font-semibold mb-2">Error Loading Users</div>
+            <div className="text-red-500 text-sm">{error}</div>
+          </div>
+        )}
+
+        {/* Users Table */}
+        {!loading && !error && (
+          <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-[#B8860B]">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                    User Name
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-white uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-white uppercase tracking-wider">
+                    Casks
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-white uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-white uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users?.length > 0 ? (
+                  users.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? "bg-white" : "bg-gray-25"}`}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-[#B8860B] flex items-center justify-center">
+                              <span className="text-white font-semibold text-sm">
+                                {(user.name || "U").charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-semibold text-gray-900">{user.name || "N/A"}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-sm text-gray-900 font-medium">{user.email || "N/A"}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-sm font-semibold text-gray-900">{user.casks || "0"}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span
+                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                            user.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {user.status || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className="p-2 text-gray-600 hover:text-[#B8860B] hover:bg-gray-100 rounded-lg transition-all duration-200"
+                            title="Edit user"
+                          >
+                            <RiEditBoxLine className="text-lg" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(user)}
+                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                            title="Delete user"
+                          >
+                            <RiDeleteBin5Line className="text-lg" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-12 text-center">
+                      <div className="text-gray-500">
+                        <div className="text-lg font-medium mb-2">No users found</div>
+                        <div className="text-sm">Try adjusting your search criteria</div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && !error && users?.length > 0 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+            <div className="text-sm text-gray-600 font-medium">
+              Showing <span className="font-semibold text-gray-900">{users.length}</span> of{" "}
+              <span className="font-semibold text-gray-900">{totalUsers}</span> users
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => updatePage(page - 1)}
+                disabled={page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const pageNum = i + 1
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => updatePage(pageNum)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        page === pageNum ? "bg-[#B8860B] text-white" : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                onClick={() => updatePage(page + 1)}
+                disabled={page === totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Edit Modal */}
       <CommonModal
         isOpen={isEditModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedToken(null);
+          setIsEditModalOpen(false)
+          setSelectedToken(null)
         }}
-        title={`Edit User - ${selectedToken?.name}`}
+        title={`Edit User - ${selectedToken?.name || "N/A"}`}
       >
         {selectedToken && (
-          <div className="space-y-4">
-            <div className="flex justify-between">
-              <span className="font-semibold">Ticket ID:</span>
-              <span>{selectedToken.id}</span>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">User ID:</span>
+                <span className="text-gray-900 font-medium">{selectedToken.id}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Name:</span>
+                <span className="text-gray-900 font-medium">{selectedToken.name}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Email:</span>
+                <span className="text-gray-900 font-medium">{selectedToken.email}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Casks:</span>
+                <span className="text-gray-900 font-medium">{selectedToken.casks}</span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="font-semibold text-gray-700">Status:</span>
+                <select
+                  className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#B8860B] focus:border-[#B8860B] font-medium"
+                  value={selectedToken.status}
+                  onChange={(e) => setSelectedToken({ ...selectedToken, status: e.target.value })}
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Name:</span>
-              <span>{selectedToken.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Email:</span>
-              <span>{selectedToken.email}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Casks:</span>
-              <span>{selectedToken.casks}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-semibold">Status:</span>
-              <select
-                className="border border-gray-200 outline-none rounded-md px-4 py-2 w-[150px]"
-                value={selectedToken.status}
-                onChange={(e) =>
-                  setSelectedToken({ ...selectedToken, status: e.target.value })
-                }
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-
-            <div className="flex gap-4 pt-6">
+            <div className="flex gap-3 pt-6 border-t border-gray-100">
               <button
                 onClick={() => {
-                  setIsEditModalOpen(false);
-                  setSelectedToken(null);
+                  setIsEditModalOpen(false)
+                  setSelectedToken(null)
                 }}
-                className="px-6 py-2 border border-[#B8860B] rounded-lg hover:bg-gray-100 w-full"
+                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateToken}
-                className="px-6 py-2 bg-[#B8860B] text-white rounded-lg hover:bg-[#a0730b] w-full"
+                className="flex-1 px-6 py-3 bg-[#B8860B] text-white rounded-lg hover:bg-[#a0730b] font-medium transition-all duration-200"
               >
-                Save
+                Save Changes
               </button>
             </div>
           </div>
         )}
       </CommonModal>
 
-      {/* ✅ Delete Confirmation Modal */}
-      <CommonModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="Confirm Delete"
-      >
+      {/* Delete Confirmation Modal */}
+      <CommonModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Confirm Delete">
         {tokenToDelete && (
-          <div className="space-y-4 text-center">
-            <p className="text-lg">Are you sure you want to delete?</p>
-            <div className="flex justify-center gap-4 mt-4">
+          <div className="space-y-6 text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-[#B8860B]/5">
+              <RiDeleteBin5Line className="h-6 w-6 text-[#B8860B]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete User Account</h3>
+              <p className="text-gray-600">
+                Are you sure you want to delete <span className="font-semibold">{tokenToDelete.name}</span>? This action
+                cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-4">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
                 className="px-6 py-2 border border-[#B8860B] rounded-lg hover:bg-gray-100 w-full"
               >
                 Cancel
               </button>
-              <button onClick={confirmDelete} className="px-6 py-2 bg-[#B8860B] text-white rounded-lg hover:bg-[#a0730b] w-full">
-                Confirm
+              <button
+                onClick={confirmDelete}
+                className="px-6 py-2 bg-[#B8860B] text-white rounded-lg hover:bg-[#a0730b] w-full"
+              >
+                Delete User
               </button>
             </div>
           </div>
         )}
       </CommonModal>
     </div>
-  );
-};
+  )
+}
 
-export default Users;
+export default Users
