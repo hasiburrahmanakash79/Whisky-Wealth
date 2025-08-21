@@ -10,8 +10,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    // const accessToken = getCookie("accessToken");
-    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OThiNjczNDM0MzM0ZmJkZTc4ZDhhZCIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzU0ODU2MzA3LCJleHAiOjE3NTU0NjExMDd9.hpif_EIyszmkoALHb8o2A8Z4X5DBVQANUfSnW_ZsnNc';
+    const accessToken = getCookie("accessToken"); // Retrieve accessToken from cookies
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -38,19 +37,17 @@ const processQueue = (error, token = null) => {
       prom.resolve(token);
     }
   });
-
   failedQueue = [];
 };
 
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    // console.error("API Response Error:", error.response?.data || error.message);
     // Check if response is HTML or non-JSON to avoid 'includes' error
     if (error.response && typeof error.response.data === "string") {
-      return Promise.reject(new Error("Invalid response format from server (likely HTML)"));
+      return Promise.reject(
+        new Error("Invalid response format from server (likely HTML)")
+      );
     }
     if (
       error.response?.data?.message &&
