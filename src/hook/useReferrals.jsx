@@ -1,9 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
-import apiClient from '../lib/api-client';
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useCallback } from "react";
+import apiClient from "../lib/api-client";
 
-const useReferrals = (initialPage = 1, initialLimit = 20, initialStatus = 'completed', initialSearch = 'james') => {
-  const [referrals, setReferrals] = useState(null);
-  const [loading, setLoading] = useState(true);
+const useReferrals = (
+  initialPage = 1,
+  initialLimit = 10,
+  initialStatus = "",
+  initialSearch = ""
+) => {
+  const [referrals, setReferrals] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(initialPage);
   const [limit, setLimit] = useState(initialLimit);
@@ -16,7 +22,7 @@ const useReferrals = (initialPage = 1, initialLimit = 20, initialStatus = 'compl
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/referrals', {
+      const response = await apiClient.get("/referrals", {
         params: {
           page,
           limit,
@@ -24,55 +30,84 @@ const useReferrals = (initialPage = 1, initialLimit = 20, initialStatus = 'compl
           search,
         },
       });
-      // Map API response fields to match component expectations
-      const mappedReferrals = response.data.data.referrals.map(referral => ({
-        id: referral._id,
-        referrerName: referral.referrerInfo[0]?.fullName || 'N/A',
-        refereeName: referral.refereeInfo[0]?.fullName || 'N/A',
-        refereeEmail: referral.refereeInfo[0]?.email || 'N/A',
-        rewardAmount: referral.rewardAmount.toString(),
-        currency: referral.currency,
-        status: referral.status,
-        completedDate: referral.completedDate ? new Date(referral.completedDate).toLocaleDateString() : 'N/A',
-        firstPurchaseAmount: referral.firstPurchaseAmount.toString(),
+
+      console.log("API Response:", response.data); // Debug API response
+
+      const { referrals, stats, pagination } = response.data.data;
+
+      const mappedReferrals = referrals.map((referral) => ({
+        id: referral._id || "N/A",
+        referrerName: referral.referrer?.fullName || "N/A",
+        referrerEmail: referral.referrer?.email || "N/A",
+        refereeName: referral.referee?.fullName || "N/A",
+        refereeEmail: referral.referee?.email || "N/A",
+        rewardAmount: referral.rewardAmount
+          ? referral.rewardAmount.toString()
+          : "0",
+        currency: referral.currency || "USD",
+        status: referral.status || "pending",
+        completedDate: referral.completedDate
+          ? new Date(referral.completedDate).toLocaleDateString()
+          : "N/A",
+        firstPurchaseAmount: referral.firstPurchaseAmount
+          ? referral.firstPurchaseAmount.toString()
+          : "0",
+        firstPurchaseDate: referral.firstPurchaseDate
+          ? new Date(referral.firstPurchaseDate).toLocaleDateString()
+          : "N/A",
+        referralCode: referral.referralCode || "N/A",
+        adminNotes: referral.adminNotes || "",
+        totalPurchases: referral.totalPurchases || 0,
+        totalPurchaseAmount: referral.totalPurchaseAmount || 0,
+        pointsAwarded: referral.pointsAwarded || 0,
+        rewardPaid: referral.rewardPaid || false,
       }));
+
       setReferrals(mappedReferrals);
-      setTotalPages(response.data.data.pagination.pages);
-      setTotalReferrals(response.data.data.pagination.total);
-      setStats(response.data.data.stats);
+      setTotalPages(pagination.pages || 1);
+      setTotalReferrals(pagination.total || 0);
+      setStats(stats || null);
       setError(null);
     } catch (err) {
-      setError(err.message || 'Failed to fetch referrals');
-      setReferrals(null);
+      console.error("Fetch Error:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Failed to fetch referrals");
+      setReferrals([]);
       setStats(null);
     } finally {
       setLoading(false);
     }
   }, [page, limit, status, search]);
 
-  const updateReferralStatus = useCallback(async (referralId, newStatus) => {
-    try {
-      await apiClient.put(`/referrals/${referralId}/status`, { status: newStatus });
-      await fetchData(); // Refetch data to update the UI
-    } catch (err) {
-      setError(err.message || 'Failed to update referral status');
-    }
-  }, [fetchData]);
+  const updateReferralStatus = useCallback(
+    async (referralId, newStatus) => {
+      try {
+        await apiClient.put(`/referrals/${referralId}/status`, {
+          status: newStatus,
+        });
+        await fetchData(); // Refetch data to update the UI
+      } catch (err) {
+        setError(
+          err.response?.data?.message || "Failed to update referral status"
+        );
+      }
+    },
+    [fetchData]
+  );
 
   useEffect(() => {
     let isMounted = true;
-
     fetchData().then(() => {
       if (!isMounted) return;
     });
-
     return () => {
       isMounted = false;
     };
   }, [fetchData]);
 
   const updatePage = (newPage) => {
-    setPage(newPage);
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
   };
 
   const updateLimit = (newLimit) => {

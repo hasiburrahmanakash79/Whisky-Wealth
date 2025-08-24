@@ -1,180 +1,347 @@
-import { useState } from "react";
-import { FaCheck } from "react-icons/fa";
-import CommonModal from "../../../components/Common/CommonModal";
-import { RiArrowLeftLine } from "react-icons/ri";
-import { useNavigate } from "react-router-dom";
+/* eslint-disable no-unused-vars */
+"use client";
 
-const initialNotifications = [
-  {
-    id: 2,
-    title: "New Lead Assigned",
-    message: "A new lead has been assigned to you: Robert Johnson.",
-    time: "2h ago",
-    image: "https://luxoplace.ca/wp-content/uploads/apartment_luxo_2.jpg",
-    read: false,
-  },
-  {
-    id: 3,
-    title: "Reminder",
-    message: "Follow up with Jessica Miller about her recent property inquiry.",
-    time: "1d ago",
-    image:
-      "https://pbazaar.com/content/images/thumbs/0182447_1369-sft-ongoing-apartment-for-sale-mirpur.jpeg",
-    read: false,
-  },
-  {
-    id: 4,
-    title: "Meeting Scheduled",
-    message: "Your meeting with Sarah Brown is confirmed for tomorrow at 3PM.",
-    time: "3h ago",
-    image:
-      "https://www.bdhousing.com/api/list/listings/100X100/237260/166e7339df90349227fc4730c2327362.jpg",
-    read: false,
-  },
-  {
-    id: 5,
-    title: "New Message",
-    message:
-      "Client Alex Turner has sent a message regarding the 2BHK listing.",
-    time: "10m ago",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6270dcb52a53a65bc96c6dae/ee43aff3-f27d-409f-b5be-a53dd7f494e0/image-asset.jpeg",
-    read: false,
-  },
-  {
-    id: 6,
-    title: "Price Update",
-    message: "The price of property ID #45213 has been updated.",
-    time: "4h ago",
-    image: "https://luxoplace.ca/wp-content/uploads/apartment_luxo_2.jpg",
-    read: false,
-  },
-  {
-    id: 7,
-    title: "Client Feedback",
-    message: "You received new feedback from Emily Watson.",
-    time: "30m ago",
-    image:
-      "https://pbazaar.com/content/images/thumbs/0182447_1369-sft-ongoing-apartment-for-sale-mirpur.jpeg",
-    read: false,
-  },
-  {
-    id: 8,
-    title: "Call Scheduled",
-    message: "Your call with Jason Lee is scheduled for 5 PM today.",
-    time: "15m ago",
-    image:
-      "https://www.bdhousing.com/api/list/listings/100X100/237260/166e7339df90349227fc4730c2327362.jpg",
-    read: false,
-  },
-  {
-    id: 9,
-    title: "Offer Received",
-    message: "An offer has been received for property ID #67890.",
-    time: "45m ago",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6270dcb52a53a65bc96c6dae/ee43aff3-f27d-409f-b5be-a53dd7f494e0/image-asset.jpeg",
-    read: false,
-  },
-  {
-    id: 10,
-    title: "Site Visit Confirmed",
-    message: "The site visit for Mia Rodriguez is confirmed for Friday.",
-    time: "6h ago",
-    image: "https://luxoplace.ca/wp-content/uploads/apartment_luxo_2.jpg",
-    read: false,
-  },
-];
+import { useState, useEffect } from "react";
+import CommonModal from "../../../components/Common/CommonModal";
+import { useForm } from "react-hook-form";
+import apiClient from "../../../lib/api-client";
+import useUserData from "../../../hook/useUserData";
+import Loader from "../../../components/Common/Loader";
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const [notifications, setNotifications] = useState([]);
   const [selected, setSelected] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { users } = useUserData(1, 10, "");
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pages: 1,
+    total: 0,
+    limit: 20,
+  });
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm();
+
+  const isGlobal = watch("isGlobal"); // ✅ watch checkbox value
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async (page = 1) => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get(`/notifications`);
+        setNotifications(response.data.data.notifications);
+        setPagination(response.data.data.pagination);
+        setUnreadCount(response.data.data.unreadCount);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch notifications. Please try again.");
+        setLoading(false);
+      }
+    };
+    fetchNotifications(pagination.current);
+  }, []);
 
   const handleView = (item) => {
     setSelected(item);
     setIsModalOpen(true);
   };
 
-  const markAllAsRead = () => {
-    const updated = notifications.map((n) => ({ ...n, read: true }));
-    setNotifications(updated);
+  const handleClickNotification = async (item) => {
+    if (!item.isRead) {
+      try {
+        await apiClient.patch(`/notifications/${item.id}/read`);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
+        );
+        setUnreadCount((prev) => prev - 1);
+      } catch (err) {
+        setError("Failed to mark notification as read.");
+      }
+    }
+    handleView(item);
   };
 
-  const handleClickNotification = (item) => {
-    const updated = notifications.map((n) =>
-      n.id === item.id ? { ...n, read: true } : n
-    );
-    setNotifications(updated);
-    setSelected(item); // Set selected item
-    setIsModalOpen(true); // Open modal properly
+  const markAllAsRead = async () => {
+    try {
+      await apiClient.patch("/notifications/mark-all-read");
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      setError("Failed to mark all notifications as read.");
+    }
   };
 
-  const navigate = useNavigate();
+  const handleCreateNotification = async (data) => {
+    try {
+      setError(null);
+
+      console.log("Purchase", data);
+
+      await apiClient.post("/notifications", {
+        title: data.title,
+        message: data.message,
+        type: data.type,
+        priority: data.priority,
+        category: data.category,
+        adminNotes: data.adminNotes,
+        isGlobal: data.isGlobal, // ✅ send checkbox value
+        recipient: data.isGlobal ? null : data.recipient, // ✅ only send if not global
+      });
+
+      setIsCreateModalOpen(false);
+      reset();
+      // Refresh notifications
+      const response = await apiClient.get(`/notifications`);
+      setNotifications(response.data.data.notifications);
+      setPagination(response.data.data.pagination);
+      setUnreadCount(response.data.data.unreadCount);
+      alert("Notification created successfully!");
+    } catch (err) {
+      setError("Failed to create notification. Please try again.");
+    }
+  };
+
+  const loadMore = async () => {
+    if (pagination.current < pagination.pages) {
+      try {
+        setLoading(true);
+        const nextPage = pagination.current + 1;
+        const response = await apiClient.get(
+          `/notifications?page=${nextPage}&limit=${pagination.limit}`
+        );
+        setNotifications((prev) => [
+          ...prev,
+          ...response.data.data.notifications,
+        ]);
+        setPagination(response.data.data.pagination);
+        setUnreadCount(response.data.data.unreadCount);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load more notifications.");
+        setLoading(false);
+      }
+    }
+  };
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
+  console.log("uiser", notifications);
 
   return (
-    <div className="">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3 mb-6">
+    <div className="mx-auto p-6 bg-white min-h-screen">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-medium text-gray-900">
+          Notifications ({unreadCount} unread)
+        </h1>
+        <div className="flex gap-2">
+          {unreadCount > 1 && (
+            <button
+              onClick={markAllAsRead}
+              className="bg-[#B8860B] hover:bg-[#a0730b] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              disabled={unreadCount === 0}>
+              Mark All as Read
+            </button>
+          )}
           <button
-            className="text-2xl cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            <RiArrowLeftLine />
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-[#B8860B] hover:bg-[#a0730b] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            + Create Notification
           </button>
-          <h1 className="text-2xl font-semibold">Notification</h1>
         </div>
       </div>
 
-      <div className="">
-        {notifications.map((item) => (
-          <div
-            key={item.id}
-            className={`flex gap-4 py-4 cursor-pointer hover:bg-[#B8860B]/5 transform duration-200 border-b border-gray-100 px-5 ${
-              item.read ? "text-gray-500" : "font-semibold"
-            }`}
-            onClick={() => handleClickNotification(item)}
-          >
-            <img src={item.image} alt="AI" className="w-10 h-10 rounded-full" />
-            <div className="flex-1">
-              <button
-                onClick={() => handleView(item)}
-                className="hover:text-[#B8860B]"
-              >
-                {item.title}
-              </button>
-              <div className="text-sm">{item.message}</div>
-            </div>
-            <div className="text-sm text-gray-400 whitespace-nowrap">
-              {item.time}
-            </div>
+      {/* Notification list */}
+      <div className="space-y-0 relative">
+        {loading && (
+          <div className=" flex items-center justify-center bg-white/60 z-10">
+            <Loader />
           </div>
-        ))}
+        )}
+
+        {notifications.length === 0 && !loading && (
+          <div className=" flex items-center justify-center bg-white/60 z-10">
+            <p className="text-gray-500">No notifications available.</p>
+          </div>
+        )}
+
+        {!loading &&
+          notifications.map((item) => (
+            <div
+              key={item.id}
+              className={`flex items-start gap-4 py-6 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                item.isRead ? "opacity-60" : ""
+              }`}
+              onClick={() => handleClickNotification(item)}>
+              {/* Circular icon */}
+              <div className="w-10 h-10 bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 bg-purple-700 rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">
+                    {item.category.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-medium text-gray-900 mb-1">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {item.message}
+                </p>
+              </div>
+
+              <div className="text-sm text-gray-500 flex-shrink-0">
+                {item.time}
+              </div>
+            </div>
+          ))}
       </div>
 
-      <div className="place-content-center place-items-center text-sm text-blue-600 cursor-pointer mt-10">
-        <button
-          onClick={markAllAsRead}
-          className="text-[#B8860B] flex items-center gap-1"
-        >
-          <FaCheck className="text-sm" />
-          Mark all as read
-        </button>
-      </div>
+      {/* Pagination */}
+      {pagination.current < pagination.pages && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={loadMore}
+            className="bg-[#B8860B] hover:bg-[#a0730b] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            disabled={loading}>
+            {loading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
 
-      {/* ✅ Modal with selected data */}
+      {/* Notification Details Modal */}
       <CommonModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Notification Details"
-      >
+        title="Notification Details">
         {selected && (
           <div className="space-y-3">
             <p className="text-lg font-bold">{selected.title}</p>
             <p className="text-gray-500">{selected.time}</p>
             <p>{selected.message}</p>
+            <p className="text-sm text-gray-400">
+              Priority: {selected.priority} | Type: {selected.type} | Category:{" "}
+              {selected.category}
+            </p>
           </div>
         )}
+      </CommonModal>
+
+      {/* Create Notification Modal */}
+      <CommonModal
+        isOpen={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setError(null);
+          reset();
+        }}
+        title="Create Notification">
+        <form
+          onSubmit={handleSubmit(handleCreateNotification)}
+          className="space-y-4">
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          <div>
+            <label className="block mb-1">Title</label>
+            <input
+              type="text"
+              {...register("title", { required: "Title is required" })}
+              className="w-full border border-gray-300 p-3 rounded"
+            />
+            {errors.title && (
+              <p className="text-red-500 text-sm">{errors.title.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block mb-1">Message</label>
+            <textarea
+              {...register("message", { required: "Message is required" })}
+              className="w-full border border-gray-300 p-3 rounded"
+              rows="4"
+            />
+            {errors.message && (
+              <p className="text-red-500 text-sm">{errors.message.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block mb-1">Type</label>
+            <select
+              {...register("type")}
+              className="w-full border border-gray-300 p-3 rounded">
+              <option value="system">System</option>
+              <option value="tier">Tier</option>
+              <option value="referral">Referral</option>
+              <option value="payment">Payment</option>
+              <option value="cask">Cask</option>
+              <option value="offer">Offer</option>
+              <option value="purchase">Purchase</option>
+            </select>
+          </div>
+
+          {/* Global Checkbox */}
+          <div className="flex items-center gap-2">
+            <label className="block">Is Global</label>
+            <input type="checkbox" {...register("isGlobal")} />
+          </div>
+
+          {/* Recipient only if NOT global */}
+          {!isGlobal && (
+            <div>
+              <label className="block mb-1">Recipient</label>
+              <select
+                {...register("recipient", {
+                  required: "Recipient user ID is required",
+                })}
+                className="w-full border border-gray-300 p-3 rounded">
+                <option value="">-- Select a user --</option>
+                {users.length > 0 &&
+                  users.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+              </select>
+              {errors.recipient && (
+                <p className="text-red-500 text-sm">
+                  {errors.recipient.message}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div>
+            <label className="block mb-1">Admin Notes</label>
+
+            <textarea
+              {...register("adminNotes")}
+              className="w-full border border-gray-300 p-3 rounded"
+              rows="2"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-[#B8860B] text-white px-4 py-2 rounded-lg hover:bg-[#a0730b] transition"
+            disabled={loading}>
+            {loading ? "Creating..." : "Create Notification"}
+          </button>
+        </form>
       </CommonModal>
     </div>
   );

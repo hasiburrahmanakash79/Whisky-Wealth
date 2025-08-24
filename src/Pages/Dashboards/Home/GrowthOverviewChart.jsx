@@ -20,7 +20,9 @@ const data = [
 const GrowthOverviewChart = () => {
   return (
     <div className="border border-gray-300 p-5 rounded-xl">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Growth Overview</h2>
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        Growth Overview
+      </h2>
       <ResponsiveContainer width="100%" height={315}>
         <BarChart data={data} barGap={8}>
           <CartesianGrid vertical={true} strokeDasharray="3 3" />

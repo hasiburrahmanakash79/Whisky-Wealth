@@ -1,21 +1,52 @@
-import { useState, useRef } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useRef } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { FaCamera } from "react-icons/fa";
 import { RiArrowLeftLine } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../../../lib/api-client";
 
 const ProfileInformation = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null); // Track selected file for upload
 
   const [formData, setFormData] = useState({
-    name: "Sharon",
-    email: "alkhahsalkgsalkgsalk@gmail.com",
-    phone: "12423000597212",
-    role: "Admin",
-    profileImage: "https://i.pravatar.cc/100",
+    name: "",
+    email: "",
+    phone: "",
+    role: "",
+    profileImage: "", // Default placeholder
   });
+
+  const navigate = useNavigate();
+
+  // Fetch profile data on component mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get("/auth/profile");
+        const userData = response.data.data.user;
+        console.log("userData.avatar", userData.avatar);
+        setFormData({
+          name: userData.fullName || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          role: userData.role || "",
+          profileImage: userData.avatar,
+        });
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch profile data. Please try again.");
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({
@@ -27,7 +58,8 @@ const ProfileInformation = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
+      setSelectedFile(file); // Store file for upload
+      const imageUrl = URL.createObjectURL(file); // Local preview
       setFormData((prev) => ({
         ...prev,
         profileImage: imageUrl,
@@ -35,30 +67,74 @@ const ProfileInformation = () => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsEditing(false);
-    console.log(formData); // Save API call here
+  const uploadAvatar = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const response = await apiClient.post("/auth/upload-avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("response", response.data);
+      return response.data.data.avatarUrl; // Assuming response contains avatar URL
+    } catch (e) {
+      throw new Error("Failed to upload avatar. Please try again.");
+    }
   };
 
-  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      let avatarUrl = formData.profileImage;
 
+      // Upload new avatar if a file was selected
+      if (selectedFile) {
+        avatarUrl = await uploadAvatar(selectedFile);
+      }
+
+      // Prepare data for profile update
+      const updateData = {
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role,
+        avatar: avatarUrl !== "https://i.pravatar.cc/100" ? avatarUrl : null, // Send null if using placeholder
+      };
+
+      await apiClient.put("/auth/profile", updateData);
+      setFormData((prev) => ({ ...prev, profileImage: avatarUrl }));
+      setSelectedFile(null); // Clear selected file
+      setIsEditing(false);
+      setLoading(false);
+      alert("Profile updated successfully!");
+    } catch (err) {
+      alert(
+        err.response.data.errors[0].message ||
+          "Failed to update profile. Please try again."
+      );
+      setLoading(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="">
       <div className="flex justify-between items-center mb-6 pb-4">
         <div className="flex items-center gap-3">
-          <button className="text-2xl cursor-pointer" onClick={() => navigate(-1)}>
-          <RiArrowLeftLine />
-        </button>
-        <h2 className="font-semibold text-2xl">Personal Information</h2>
+          <button
+            className="text-2xl cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(-1);
+            }}>
+            <RiArrowLeftLine />
+          </button>
+          <h2 className="font-semibold text-2xl">Personal Information</h2>
         </div>
         {!isEditing && (
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="bg-[#B8860B] text-white py-2 px-4 rounded flex items-center gap-2"
-          >
+            className="bg-[#B8860B] text-white py-2 px-4 rounded flex items-center gap-2">
             ✎ Edit Profile
           </button>
         )}
@@ -66,7 +142,7 @@ const ProfileInformation = () => {
 
       <div className="flex flex-col lg:flex-row gap-6 py-5 px-20">
         {/* Left (Profile Image & Role) */}
-        <div className="w-full lg:w-1/4 flex flex-col items-center  bg-[#E4D8B3] border border-[#E4D8B3] p-14 rounded-md relative">
+        <div className="w-full lg:w-1/4 flex flex-col items-center bg-[#E4D8B3] border border-[#E4D8B3] p-14 rounded-md relative">
           <div className="relative">
             <img
               src={formData.profileImage}
@@ -77,8 +153,7 @@ const ProfileInformation = () => {
               <>
                 <div
                   className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center cursor-pointer"
-                  onClick={() => fileInputRef.current.click()}
-                >
+                  onClick={() => fileInputRef.current.click()}>
                   <FaCamera className="text-white text-2xl" />
                 </div>
                 <input
@@ -104,7 +179,7 @@ const ProfileInformation = () => {
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
               disabled={!isEditing}
-              className="w-full  bg-[#E4D8B3] rounded-lg p-5 outline-none"
+              className="w-full bg-[#E4D8B3] rounded-lg p-5 outline-none"
             />
           </div>
 
@@ -113,9 +188,9 @@ const ProfileInformation = () => {
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
               disabled={!isEditing}
-              className="w-full  bg-[#E4D8B3] rounded-lg p-5 outline-none"
+              readOnly
+              className="w-full bg-[#E4D8B3] rounded-lg p-5 outline-none"
             />
           </div>
 
@@ -142,8 +217,8 @@ const ProfileInformation = () => {
           <button
             type="submit"
             className="bg-[#B8860B] text-white px-6 py-2 rounded"
-          >
-            Save Info
+            disabled={loading}>
+            {loading ? "Saving..." : "Save Info"}
           </button>
         </div>
       )}

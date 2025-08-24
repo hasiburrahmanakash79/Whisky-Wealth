@@ -1,7 +1,15 @@
 import logo from "../assets/logo/logo.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { BiHomeAlt2 } from "react-icons/bi";
-import { RiSettings4Line, RiFlagLine, RiGiftLine , RiUserCommunityLine, RiNotification2Line, RiUserFollowLine,RiShoppingCartLine  } from "react-icons/ri";
+import {
+  RiSettings4Line,
+  RiFlagLine,
+  RiGiftLine,
+  RiUserCommunityLine,
+  RiNotification2Line,
+  RiUserFollowLine,
+  RiShoppingCartLine,
+} from "react-icons/ri";
 import { FaRightFromBracket } from "react-icons/fa6";
 import { IconContext } from "react-icons";
 import Swal from "sweetalert2";
@@ -28,10 +36,10 @@ const Dashboard = () => {
     Home: BiHomeAlt2,
     User: RiUserCommunityLine,
     Settings: RiSettings4Line,
-    Offer: RiGiftLine ,
+    Offer: RiGiftLine,
     Challenge: RiFlagLine,
-    Referrals: RiUserFollowLine ,
-    orders: RiShoppingCartLine  ,
+    Referrals: RiUserFollowLine,
+    orders: RiShoppingCartLine,
     Notification: RiNotification2Line,
   };
 
@@ -86,10 +94,7 @@ const Dashboard = () => {
   return (
     <div className="flex text-black">
       {/* Sidebar */}
-      <div
-        className="w-52 p-4 h-screen shadow-xl fixed left-0 top-0 bottom-0 z-50 pt-8 transition-all duration-500 bg-[#F6F0E1]"
-
-      >
+      <div className="w-52 p-4 h-screen shadow-xl fixed left-0 top-0 bottom-0 z-50 pt-8 transition-all duration-500 bg-[#F6F0E1]">
         <div className="mb-7 flex items-center gap-x-2">
           <img
             src={logo}
@@ -102,8 +107,7 @@ const Dashboard = () => {
         <ul
           className={`${
             open ? "" : "flex flex-col items-center justify-center"
-          }`}
-        >
+          }`}>
           {adminMenus.map((Menu, index) => (
             <Link
               to={Menu.path}
@@ -112,12 +116,10 @@ const Dashboard = () => {
                 location.pathname === Menu.path
                   ? "text-white bg-[#B8860B]"
                   : "hover:bg-[#B8860B]/10"
-              }`}
-            >
+              }`}>
               <li className="flex items-center gap-x-3 ps-2 text-md">
                 <IconContext.Provider
-                  value={{ className: "react-icon text-2xl" }}
-                >
+                  value={{ className: "react-icon text-2xl" }}>
                   <Menu.icon />
                 </IconContext.Provider>
                 <span className={`origin-left duration-200`}>{Menu.title}</span>
@@ -129,8 +131,7 @@ const Dashboard = () => {
         <div className="mt-28 bottom-10 absolute w-full border-t border-gray-200 -ms-4">
           <button
             onClick={handleLogout}
-            className={`flex cursor-pointer text-sm items-center justify-center  p-2 w-4/5 pt-7`}
-          >
+            className={`flex cursor-pointer text-sm items-center justify-center  p-2 w-4/5 pt-7`}>
             <li className="flex items-center justify-center gap-x-4 w-full">
               <FaRightFromBracket />
               <span className={`origin-left duration-200`}>Logout</span>
@@ -141,14 +142,11 @@ const Dashboard = () => {
 
       {/* Main Content Area */}
       <div
-        className={`pl-56 text-black p-4 ms-3 flex-1 overflow-y-auto transition-all duration-500 h-[100vh]`}
-      >
+        className={`pl-56 text-black p-4 ms-3 flex-1 overflow-y-auto transition-all duration-500 h-[100vh]`}>
         <div className=" py-4 flex justify-between items-center mb-5">
           {/* Left Section */}
           <div>
-            <h1 className="text-2xl font-semibold">
-              Welcome, John 👋
-            </h1>
+            <h1 className="text-2xl font-semibold">Welcome, John 👋</h1>
             <p className="text-sm ">Have a wonderful day!</p>
           </div>
 
