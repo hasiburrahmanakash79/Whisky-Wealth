@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router";
-// import Signup from "../Pages/Authentication/Signup";
 import SignIn from "../Pages/Authentication/SignIn";
 import OtpVerification from "../Pages/Authentication/OtpVerification";
 import Dashboard from "../Layouts/Dashboard";
@@ -14,68 +13,38 @@ import ForgetPassword from "../Pages/Authentication/ForgetPassword";
 import Offers from "../Pages/Dashboards/Offers/Offers";
 import Referrals from "../Pages/Dashboards/Referrals/Referrals";
 import Orders from "../Pages/Dashboards/Orders/Orders";
+import PrivateRoute from "./PrivateRoute";
+import PublicRoute from "./PublicRoute";
+
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Dashboard />,
+    element: <PrivateRoute />, // সব Dashboard route protected
     children: [
       {
         path: "/",
-        element: <Home />,
-      },
-      {
-        path: "/user",
-        element: <Users />,
-      },
-      {
-        path: "/offers",
-        element: <Offers />,
-      },
-      {
-        path: "/orders",
-        element: <Orders />,
-      },
-      {
-        path: "/referrals",
-        element: <Referrals />,
-      },
-      {
-        path: "/notifications",
-        element: <Notifications />,
-      },
-      {
-        path: "/setting",
-        element: <Setting />,
-      },
-      {
-        path: "/setting/profile",
-        element: <ProfileInformation />,
-      },
-      {
-        path: "/setting/privacy",
-        element: <PrivacyPolicy />,
+        element: <Dashboard />,
+        children: [
+          { path: "/", element: <Home /> },
+          { path: "/user", element: <Users /> },
+          { path: "/offers", element: <Offers /> },
+          { path: "/orders", element: <Orders /> },
+          { path: "/referrals", element: <Referrals /> },
+          { path: "/notifications", element: <Notifications /> },
+          { path: "/setting", element: <Setting /> },
+          { path: "/setting/profile", element: <ProfileInformation /> },
+          { path: "/setting/privacy", element: <PrivacyPolicy /> },
+        ],
       },
     ],
   },
   {
-    path: "/signin",
-    element: <SignIn />,
-  },
-  // {
-  //   path: "/signup",
-  //   element: <Signup />,
-  // },
-  {
-    path: "/otp",
-    element: <OtpVerification />,
-  },
-  {
-    path: "/forgot_password",
-    element: <ForgetPassword />,
-  },
-  {
-    path: "/reset_password",
-    element: <ResetPass />,
+    element: <PublicRoute />, // login না করলে শুধু এগুলো দেখতে পারবে
+    children: [
+      { path: "/signin", element: <SignIn /> },
+      { path: "/otp", element: <OtpVerification /> },
+      { path: "/forgot_password", element: <ForgetPassword /> },
+      { path: "/reset_password", element: <ResetPass /> },
+    ],
   },
 ]);
 

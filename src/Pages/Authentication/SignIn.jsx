@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logo/logo.png";
 import apiClient from "../../lib/api-client";
 import { setAuthTokens, removeAuthTokens } from "../../lib/cookie-utils";
+import toast from "react-hot-toast";
 
 const SignIn = () => {
   const {
@@ -35,7 +36,7 @@ const SignIn = () => {
     } catch (error) {
       console.error("Login Error:", error.response?.data || error.message);
       removeAuthTokens();
-      alert(error.response?.data?.message || "Login failed. Please try again.");
+      toast(error.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -57,11 +58,11 @@ const SignIn = () => {
             {/* Email */}
             <div>
               <label className="text-gray-600 text-sm sm:text-base">
-                Username
+                Email
               </label>
               <input
                 type="email"
-                placeholder="Enter Username"
+                placeholder="Enter Email Address"
                 {...register("email", {
                   required: "Email is required",
                   pattern: {
@@ -69,7 +70,7 @@ const SignIn = () => {
                     message: "Invalid username",
                   },
                 })}
-                className="w-full px-4 py-2 rounded-[12px] border border-[#B0B0B0] outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                className="w-full px-4 py-2 rounded-[12px] border border-[#B0B0B0] outline-none focus:ring-2 focus:ring-[#B0B0B0] text-sm sm:text-base"
               />
               {errors.email && (
                 <p className="text-red-600 text-xs sm:text-sm mt-1">
@@ -89,7 +90,7 @@ const SignIn = () => {
                   required: "Password is required",
                 })}
                 placeholder="Enter your Password"
-                className="w-full px-4 py-2 rounded-[12px] border border-[#B0B0B0] outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                className="w-full px-4 py-2 rounded-[12px] border border-[#B0B0B0] outline-none focus:ring-2 focus:ring-[#B0B0B0] text-sm sm:text-base"
               />
               <button
                 type="button"
@@ -105,15 +106,7 @@ const SignIn = () => {
             )}
 
             {/* Remember Me & Forgot Password */}
-            <div className="flex flex-row items-center justify-between text-xs sm:text-sm mb-6 sm:mb-10 gap-2 sm:gap-0">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  {...register("remember")}
-                  className="accent-[#B8860B] h-4 w-4"
-                />
-                Remember me
-              </label>
+            <div className="flex flex-row items-center justify-end text-xs sm:text-sm mb-6 sm:mb-10 gap-2 sm:gap-0">
               <a
                 href="/forgot_password"
                 className="text-[#B8860B] hover:underline">
@@ -124,7 +117,7 @@ const SignIn = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-[#B8860B] text-white py-2 rounded-[12px] hover:bg-[#B8860B] focus:outline-none  disabled:bg-blue-400 text-sm sm:text-base"
+              className="w-full bg-[#B8860B] cursor-pointer text-white py-2 rounded-[12px] hover:bg-[#B8860B] focus:outline-none  disabled:bg-[#B8860B] text-sm sm:text-base"
               disabled={isLoading}>
               {isLoading ? "Signing In..." : "Sign In"}
             </button>

@@ -94,6 +94,19 @@ const useReferrals = (
     [fetchData]
   );
 
+  console.log("UseReferrals State:", {
+    referrals,
+    loading,
+    error,
+    page,
+    limit,
+    status,
+    search,
+    totalPages,
+    totalReferrals,
+    stats,
+  });
+
   useEffect(() => {
     let isMounted = true;
     fetchData().then(() => {
@@ -104,27 +117,32 @@ const useReferrals = (
     };
   }, [fetchData]);
 
-  const updatePage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
+  const updateLimit = (newLimit) => {
+    if (limit !== newLimit) {
+      setLimit(newLimit);
+      setPage(1); // reset page when limit changes
     }
   };
 
-  const updateLimit = (newLimit) => {
-    setLimit(newLimit);
-    setPage(1); // Reset to first page when limit changes
-  };
-
   const updateStatus = (newStatus) => {
-    setStatus(newStatus);
-    setPage(1); // Reset to first page when status changes
+    if (status !== newStatus) {
+      setStatus(newStatus);
+      setPage(1); // reset page when status changes
+    }
   };
 
   const updateSearch = (newSearch) => {
-    setSearch(newSearch);
-    setPage(1); // Reset to first page when search changes
+    if (search !== newSearch) {
+      setSearch(newSearch);
+      setPage(1); // reset page when search changes
+    }
   };
 
+  const updatePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== page) {
+      setPage(newPage); // only update page without resetting
+    }
+  };
   return {
     referrals,
     loading,

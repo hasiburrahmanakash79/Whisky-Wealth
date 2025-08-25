@@ -9,6 +9,7 @@ import useUserOffer from "../../../hook/userUserOffer";
 import AddOfer from "./AddOffer";
 import Pagination from "../../../Layouts/Pagination";
 import Loader from "../../../components/Common/Loader";
+import UpdateOffer from "./UpdateOffer";
 
 const Offers = () => {
   const {
@@ -27,7 +28,7 @@ const Offers = () => {
     updateType,
 
     refetch,
-  } = useUserOffer(1, 20, "", "cask", 1000, 20000);
+  } = useUserOffer(1, 10, "", "");
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -260,7 +261,7 @@ const Offers = () => {
       />
 
       {/* Edit Offer Modal */}
-      <CommonModal
+      {/* <CommonModal
         isOpen={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false);
@@ -557,7 +558,13 @@ const Offers = () => {
             </div>
           </div>
         )}
-      </CommonModal>
+      </CommonModal> */}
+
+      <UpdateOffer
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        selectedToken={selectedToken}
+      />
 
       {/* Delete Offer Modal */}
       <CommonModal

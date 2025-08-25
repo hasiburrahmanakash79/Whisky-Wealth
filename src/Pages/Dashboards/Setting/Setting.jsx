@@ -1,25 +1,23 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { IoChevronForwardSharp } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { RiArrowLeftLine } from "react-icons/ri";
 import CommonModal from "../../../components/Common/CommonModal";
 import apiClient from "../../../lib/api-client";
+import toast from "react-hot-toast";
 
 const Setting = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [timer, setTimer] = useState(60);
-  const [resendEnabled, setResendEnabled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({}); // field-wise errors
 
   const inputRefs = useRef([]);
   const navigate = useNavigate();
 
   const {
-    formState: { errors },
+    formState: { errors: formErrors },
     reset,
     setValue,
   } = useForm();
@@ -30,66 +28,45 @@ const Setting = () => {
     confirmPassword: "",
   });
 
-  // Resend OTP timer
-  useEffect(() => {
-    let interval;
-    if (!resendEnabled && showOtpModal) {
-      interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev === 1) {
-            clearInterval(interval);
-            setResendEnabled(true);
-            return 60;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendEnabled, showOtpModal]);
-
   const handleChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
     setValue(field, value); // Sync with react-hook-form
+    // Clear field-specific error on change
+    setFieldErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const handleSave = async () => {
     try {
-      setError(null);
       setIsSubmitting(true);
+      setFieldErrors({}); // reset old errors
+
       if (
-        !formData.newPassword ||
         !formData.currentPassword ||
+        !formData.newPassword ||
         !formData.confirmPassword
       ) {
-        setError("All field is required");
+        setFieldErrors({ general: "All fields are required" });
         setIsSubmitting(false);
         return;
       }
 
-      // Validate passwords
       if (formData.newPassword !== formData.confirmPassword) {
-        setError("New password and confirm password do not match.");
-        setIsSubmitting(false);
-        return;
-      }
-      if (formData.newPassword.length < 8) {
-        setError("New password must be at least 8 characters long.");
+        setFieldErrors({ confirmPassword: "Passwords do not match" });
         setIsSubmitting(false);
         return;
       }
 
-      // Send password change request
+      // API request
       await apiClient.post("/auth/change-password", {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
       });
 
+      // Success
       setShowPasswordModal(false);
-      setShowOtpModal(true);
       setFormData({
         currentPassword: "",
         newPassword: "",
@@ -97,59 +74,22 @@ const Setting = () => {
       });
       reset();
       setIsSubmitting(false);
+      toast.success("Password changed successfully!");
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to initiate password change. Please try again."
-      );
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    try {
-      setError(null);
-      await apiClient.post("/auth/resend-otp"); // Hypothetical endpoint
-      setResendEnabled(false);
-      setTimer(60);
-      alert("OTP resent to your email!");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Failed to resend OTP. Please try again."
-      );
-    }
-  };
-
-  const handleInputChange = (e, index) => {
-    const value = e.target.value;
-    if (/^[0-9]?$/.test(value)) {
-      setValue(`otp${index}`, value, { shouldValidate: true });
-      if (index < 5 && value) {
-        inputRefs.current[index + 1]?.focus();
+      const apiErrors = err.response?.data?.errors;
+      if (apiErrors) {
+        // Convert array to object: { field: message }
+        const newErrors = {};
+        apiErrors.forEach((e) => {
+          newErrors[e.field] = e.message;
+        });
+        setFieldErrors(newErrors);
+      } else {
+        setFieldErrors({
+          general: err.response?.data?.message || "Something went wrong",
+        });
       }
-    }
-  };
-
-  const handleKeyDown = (e, index) => {
-    if (e.key === "Backspace" && !e.target.value && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const onSubmit = async (data) => {
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      const otp = Object.values(data).join("");
-
-      // Verify OTP
-      await apiClient.post("/auth/verify-otp", { otp }); // Hypothetical endpoint
-      setShowOtpModal(false);
-      reset();
-      setIsSubmitting(false);
-      alert("Password updated successfully!");
-    } catch (err) {
-      setError(err.response?.data?.message || "Invalid OTP. Please try again.");
+      console.error("API Error:", err.response?.data || err.message);
       setIsSubmitting(false);
     }
   };
@@ -195,7 +135,7 @@ const Setting = () => {
         isOpen={showPasswordModal}
         onClose={() => {
           setShowPasswordModal(false);
-          setError(null);
+          setFieldErrors({});
           setFormData({
             currentPassword: "",
             newPassword: "",
@@ -205,7 +145,11 @@ const Setting = () => {
         }}
         title="Change Password">
         <div className="space-y-4 mt-4">
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {fieldErrors.general && (
+            <p className="text-red-500 text-sm text-center">
+              {fieldErrors.general}
+            </p>
+          )}
 
           <label className="block mb-1">Current Password</label>
           <input
@@ -216,6 +160,11 @@ const Setting = () => {
             onChange={(e) => handleChange("currentPassword", e.target.value)}
             className="w-full border border-gray-300 p-3 rounded"
           />
+          {fieldErrors.currentPassword && (
+            <p className="text-red-500 text-sm">
+              {fieldErrors.currentPassword}
+            </p>
+          )}
 
           <label className="block mb-1">New Password</label>
           <input
@@ -226,6 +175,9 @@ const Setting = () => {
             onChange={(e) => handleChange("newPassword", e.target.value)}
             className="w-full border border-gray-300 p-3 rounded"
           />
+          {fieldErrors.newPassword && (
+            <p className="text-red-500 text-sm">{fieldErrors.newPassword}</p>
+          )}
 
           <label className="block mb-1">Confirm New Password</label>
           <input
@@ -236,6 +188,11 @@ const Setting = () => {
             onChange={(e) => handleChange("confirmPassword", e.target.value)}
             className="w-full border border-gray-300 p-3 rounded"
           />
+          {fieldErrors.confirmPassword && (
+            <p className="text-red-500 text-sm">
+              {fieldErrors.confirmPassword}
+            </p>
+          )}
 
           <button
             onClick={handleSave}
@@ -245,8 +202,6 @@ const Setting = () => {
           </button>
         </div>
       </CommonModal>
-
-      {/* OTP Modal */}
     </div>
   );
 };

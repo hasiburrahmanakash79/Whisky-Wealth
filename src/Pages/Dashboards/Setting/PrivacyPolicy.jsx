@@ -3,10 +3,12 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../../../lib/api-client"; // ঠিক path অনুযায়ী import করো
+import toast from "react-hot-toast";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // শুরুতে edit mode এ থাকবে
   const [description, setDescription] = useState("");
 
   const [formData, setFormData] = useState({
@@ -71,17 +73,31 @@ const PrivacyPolicy = () => {
     </p>
   `,
   });
-
   const handleEditClick = () => {
-    setDescription(formData.terms); // 🟢 Load old data into editor
+    setDescription(formData.terms); // load old content
     setIsEditing(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormData((prev) => ({ ...prev, terms: description })); // 🟢 Save updated text
-    setIsEditing(false);
-    console.log("Saved data:", description); // API call here
+    try {
+      // Save locally
+      setFormData((prev) => ({ ...prev, terms: description }));
+
+      // API call
+      const response = await apiClient.post("/terms", {
+        type: "privacy",
+        content: description,
+      });
+
+      toast.success("Privacy policy updated successfully!");
+      console.log("API Response:", response.data);
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("API Error:", error.response?.data || error.message);
+      toast.error("Failed to update privacy policy");
+    }
   };
 
   const modules = {
@@ -100,15 +116,15 @@ const PrivacyPolicy = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="">
+    <form onSubmit={handleSubmit}>
       {/* Header */}
       <div className="flex justify-between items-center p-5">
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate(-1)}
+            type="button"
             className="cursor-pointer"
-            title="Go back"
-          >
+            title="Go back">
             <IoArrowBackOutline className="text-xl" />
           </button>
           <h2 className="font-semibold text-lg">Privacy Policy</h2>
@@ -129,33 +145,32 @@ const PrivacyPolicy = () => {
             theme="snow"
             modules={modules}
             placeholder="Write your privacy policy here..."
-            className="quill-custom bg-[#E4D8B3] text-black"
+            className="quill-custom   text-black"
+            style={{ height: "50vh" }} // default height 40vh
           />
         )}
       </div>
 
-      {/* Edit and Update Button */}
-      {!isEditing && (
-        <div className="flex justify-end px-5 pb-5">
+      {/* Buttons */}
+      <div className="flex justify-end px-5 pb-5 mt-10">
+        {!isEditing ? (
           <button
             type="button"
-            onClick={handleEditClick}
-            className="bg-[#B8860B] text-white px-4 py-2 rounded-lg  hover:bg-[#a0730b] transition"
-          >
+            onClick={(e) => {
+              e.preventDefault(); // safety
+              handleEditClick();
+            }}
+            className="bg-[#B8860B] text-white px-4 py-2 rounded-lg hover:bg-[#a0730b] transition">
             ✎ Edit
           </button>
-        </div>
-      )}
-      {isEditing && (
-        <div className="flex justify-end px-5 pb-5">
+        ) : (
           <button
             type="submit"
-            className="bg-[#B8860B] text-white px-4 py-2 rounded-lg  hover:bg-[#a0730b] transition"
-          >
+            className="bg-[#B8860B] text-white px-4 py-2 rounded-lg hover:bg-[#a0730b] transition">
             Update Info
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </form>
   );
 };

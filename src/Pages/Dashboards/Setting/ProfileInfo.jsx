@@ -1,50 +1,39 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { FaCamera } from "react-icons/fa";
 import { RiArrowLeftLine } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../../lib/api-client";
+import toast from "react-hot-toast";
+import Loader from "../../../components/Common/Loader";
+import { useUser } from "../../../lib/UserContext";
+import { set } from "react-hook-form";
 
 const ProfileInformation = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null); // Track selected file for upload
 
+  const navigate = useNavigate();
+
+  const { fetchProfile, setProfileData, profileData } = useUser();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     role: "",
-    profileImage: "", // Default placeholder
+    profileImage:
+      "https://www.freeiconspng.com/thumbs/profile-icon-png/profile-icon-9.png", // Default placeholder
   });
 
-  const navigate = useNavigate();
-
-  // Fetch profile data on component mount
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const response = await apiClient.get("/auth/profile");
-        const userData = response.data.data.user;
-        console.log("userData.avatar", userData.avatar);
-        setFormData({
-          name: userData.fullName || "",
-          email: userData.email || "",
-          phone: userData.phone || "",
-          role: userData.role || "",
-          profileImage: userData.avatar,
-        });
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to fetch profile data. Please try again.");
-        setLoading(false);
-      }
-    };
+    if (profileData) {
+      setFormData({ ...profileData });
+    }
     fetchProfile();
   }, []);
 
@@ -102,16 +91,23 @@ const ProfileInformation = () => {
       };
 
       await apiClient.put("/auth/profile", updateData);
+
       setFormData((prev) => ({ ...prev, profileImage: avatarUrl }));
+      setProfileData((prev) => ({
+        ...prev,
+        ...formData,
+        profileImage: avatarUrl,
+      }));
       setSelectedFile(null); // Clear selected file
       setIsEditing(false);
-      setLoading(false);
-      alert("Profile updated successfully!");
+
+      toast("Profile updated successfully!");
     } catch (err) {
-      alert(
+      toast(
         err.response.data.errors[0].message ||
           "Failed to update profile. Please try again."
       );
+    } finally {
       setLoading(false);
     }
   };
@@ -130,7 +126,7 @@ const ProfileInformation = () => {
           </button>
           <h2 className="font-semibold text-2xl">Personal Information</h2>
         </div>
-        {!isEditing && (
+        {!isEditing && !loading && (
           <button
             type="button"
             onClick={() => setIsEditing(true)}
@@ -140,87 +136,96 @@ const ProfileInformation = () => {
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 py-5 px-20">
-        {/* Left (Profile Image & Role) */}
-        <div className="w-full lg:w-1/4 flex flex-col items-center bg-[#E4D8B3] border border-[#E4D8B3] p-14 rounded-md relative">
-          <div className="relative">
-            <img
-              src={formData.profileImage}
-              alt="profile"
-              className="w-32 h-32 rounded-full object-cover"
-            />
-            {isEditing && (
-              <>
-                <div
-                  className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center cursor-pointer"
-                  onClick={() => fileInputRef.current.click()}>
-                  <FaCamera className="text-white text-2xl" />
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  className="hidden"
-                  onChange={handleImageChange}
+      {loading ? (
+        <div className=" flex items-center justify-center bg-white/60 z-10">
+          <Loader />
+        </div>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : (
+        <>
+          <div className="flex flex-col lg:flex-row gap-6 py-5 px-20">
+            {/* Left (Profile Image & Role) */}
+            <div className="w-full lg:w-1/4 flex flex-col items-center bg-[#E4D8B3] border border-[#E4D8B3] p-14 rounded-md relative">
+              <div className="relative">
+                <img
+                  src={formData.profileImage}
+                  className="w-32 h-32 rounded-full object-cover"
                 />
-              </>
-            )}
-          </div>
-          <p className="mt-4 text-gray-700">Profile</p>
-          <p className="text-2xl font-semibold mt-3">{formData.role}</p>
-        </div>
+                {isEditing && (
+                  <>
+                    <div
+                      className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center cursor-pointer"
+                      onClick={() => fileInputRef.current.click()}>
+                      <FaCamera className="text-white text-2xl" />
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                  </>
+                )}
+              </div>
+              <p className="mt-4 text-gray-700">Profile</p>
+              <p className="text-2xl font-semibold mt-3">{formData.role}</p>
+            </div>
 
-        {/* Right (Form Fields) */}
-        <div className="w-full lg:w-3/4 space-y-4">
-          <div>
-            <label className="block mb-1">Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              disabled={!isEditing}
-              className="w-full bg-[#E4D8B3] rounded-lg p-5 outline-none"
-            />
+            {/* Right (Form Fields) */}
+            <div className="w-full lg:w-3/4 space-y-4">
+              <div>
+                <label className="block mb-1">Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  disabled={!isEditing}
+                  className="w-full bg-[#E4D8B3] rounded-lg p-5 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1">E-mail</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  disabled={!isEditing}
+                  readOnly
+                  className="w-full bg-[#E4D8B3] rounded-lg p-5 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1">Phone Number</label>
+                <PhoneInput
+                  country={"us"}
+                  value={formData.phone}
+                  onChange={(value) => handleChange("phone", value)}
+                  disabled={!isEditing}
+                  inputClass="!w-full p-7 rounded-lg"
+                  containerClass="!w-full"
+                  inputStyle={{
+                    backgroundColor: "#E4D8B3",
+                    border: 0,
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block mb-1">E-mail</label>
-            <input
-              type="email"
-              value={formData.email}
-              disabled={!isEditing}
-              readOnly
-              className="w-full bg-[#E4D8B3] rounded-lg p-5 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1">Phone Number</label>
-            <PhoneInput
-              country={"us"}
-              value={formData.phone}
-              onChange={(value) => handleChange("phone", value)}
-              disabled={!isEditing}
-              inputClass="!w-full p-7 rounded-lg"
-              containerClass="!w-full"
-              inputStyle={{
-                backgroundColor: "#E4D8B3",
-                border: 0,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {isEditing && (
-        <div className="flex justify-end mt-6">
-          <button
-            type="submit"
-            className="bg-[#B8860B] text-white px-6 py-2 rounded"
-            disabled={loading}>
-            {loading ? "Saving..." : "Save Info"}
-          </button>
-        </div>
+          {isEditing && (
+            <div className="flex justify-end mt-6">
+              <button
+                type="submit"
+                className="bg-[#B8860B] text-white px-6 py-2 rounded"
+                disabled={loading}>
+                {loading ? "Saving..." : "Save Info"}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </form>
   );

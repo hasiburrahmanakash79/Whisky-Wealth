@@ -2,16 +2,18 @@
 import { useState, useEffect } from "react";
 
 import DashboardCard from "./DashboardCard";
-import GrowthOverviewChart from "./GrowthOverviewChart";
-import UserActivityChart from "./UserActivityChart";
+// import GrowthOverviewChart from "./GrowthOverviewChart";
+// import UserActivityChart from "./UserActivityChart";
 import RecentUser from "./RecentUser";
 import apiClient from "../../../lib/api-client";
 import Loader from "../../../components/Common/Loader";
+import { useUser } from "../../../lib/UserContext";
 
 const Home = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { fetchProfile } = useUser();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -31,6 +33,7 @@ const Home = () => {
     };
 
     fetchDashboardData();
+    fetchProfile();
   }, []);
 
   if (loading) {
@@ -48,14 +51,14 @@ const Home = () => {
   return (
     <div>
       <DashboardCard data={dashboardData} />
-      <div className="py-10 grid grid-cols-3 gap-7">
+      {/* <div className="py-10 grid grid-cols-3 gap-7">
         <div className="col-span-2">
           <GrowthOverviewChart data={dashboardData} />
         </div>
         <div className="col-span-1">
           <UserActivityChart data={dashboardData} />
         </div>
-      </div>
+      </div> */}
       <RecentUser data={dashboardData} />
     </div>
   );

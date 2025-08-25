@@ -1,25 +1,116 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CommonModal from "../../../components/Common/CommonModal";
 import useUserOffer from "../../../hook/userUserOffer";
 
-const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
-  const { loading, error, addOffer } = useUserOffer();
+const UpdateOffer = ({ isOpen, onClose, selectedToken }) => {
+  const { loading, error, updateOffer } = useUserOffer();
+  console.log("Selected Token for Edit:", selectedToken);
 
+  // Initialize newOffer with selectedToken data or defaults
   const [newOffer, setNewOffer] = useState({
-    type: "cask", // Set default type
-    status: "active", // Set default status
+    type: "cask",
+    status: "active",
+    title: "",
+    description: "",
+    currentValue: "",
+    deadline: "",
+    category: "",
+    distillery: "",
+    caskType: "",
+    vintageYear: "",
+    abv: "",
+    volume: "",
+    image: null,
+    images: [],
+    packaging: "",
+    quantity: "",
+    certificate: "",
+    duration: "",
+    testing: "",
+    participants: "",
+    includes: "",
+    storageLocation: "",
+    purchaseValue: "",
   });
 
-  const handleAddOffer = async () => {
+  useEffect(() => {
+    if (selectedToken) {
+      setNewOffer({
+        id: selectedToken.id,
+        type: selectedToken.type || "cask",
+        status: selectedToken.status === "Active" ? "active" : "inactive",
+        title: selectedToken.offerName || selectedToken.title || "",
+        description: selectedToken.description || "",
+        currentValue: selectedToken.price || selectedToken.currentValue || "",
+        deadline: selectedToken.Deadline || selectedToken.deadline || "",
+        category:
+          selectedToken.category === "experience"
+            ? "experience"
+            : selectedToken.category || "premium",
+        distillery: selectedToken.details?.distillery || "",
+        caskType: selectedToken.details?.caskType || "",
+        vintageYear: selectedToken.details?.vintage || "",
+        abv: selectedToken.details?.abv || "",
+        volume: selectedToken.details?.volume || "",
+        image:
+          selectedToken.image instanceof File
+            ? selectedToken.image
+            : selectedToken.image || null,
+        images:
+          selectedToken.images instanceof FileList
+            ? Array.from(selectedToken.images)
+            : selectedToken.images || [],
+        packaging: selectedToken.details?.packaging || "",
+        quantity: selectedToken.details?.quantity || "",
+        certificate: selectedToken.details?.certificate || "",
+        duration: selectedToken.details?.duration || "",
+        testing: selectedToken.details?.testing || "",
+        participants: selectedToken.details?.participants || "",
+        includes: selectedToken.details?.includes || "",
+        storageLocation:
+          selectedToken.location || selectedToken.storageLocation || "",
+        purchaseValue:
+          selectedToken.originalPrice || selectedToken.purchaseValue || "",
+      });
+    } else {
+      setNewOffer({
+        type: "cask",
+        status: "active",
+        title: "",
+        description: "",
+        currentValue: "",
+        deadline: "",
+        category: "",
+        distillery: "",
+        caskType: "",
+        vintageYear: "",
+        abv: "",
+        volume: "",
+        image: null,
+        images: [],
+        packaging: "",
+        quantity: "",
+        certificate: "",
+        duration: "",
+        testing: "",
+        participants: "",
+        includes: "",
+        storageLocation: "",
+        purchaseValue: "",
+      });
+    }
+  }, [selectedToken]);
+
+  const handleUpdateOffer = async () => {
     try {
-      // Map form data to expected API format
       const offerData = {
-        offerName: newOffer.title,
+        id: newOffer.id, // Include ID for update
+        title: newOffer.title,
         type: newOffer.type,
-        price: newOffer.currentValue, // Using current value as the price
+        currentValue: newOffer.currentValue,
         deadline: newOffer.deadline,
-        status: "Active", // Always active for new offers
+        status: newOffer.status === "active" ? "Active" : "Inactive",
         description: newOffer.description,
         category: newOffer.type === "experience" ? "experience" : "premium",
         distillery: newOffer.distillery,
@@ -29,7 +120,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
         volume: newOffer.volume,
         image: newOffer.image,
         images: newOffer.images,
-        // Additional fields based on type
         packaging: newOffer.packaging,
         quantity: newOffer.quantity,
         certificate: newOffer.certificate,
@@ -41,62 +131,49 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
         purchaseValue: newOffer.purchaseValue,
       };
 
-      await addOffer(offerData);
-      setIsAddModalOpen(false);
-      setNewOffer({ type: "cask", status: "active" });
+      await updateOffer(offerData.id, offerData); // Pass ID and data
+      onClose();
     } catch (err) {
-      // Error is handled by the hook
-      console.error("Add offer failed", err);
+      console.error("Update offer failed", err);
     }
   };
-
-  // Conditional validation based on type - using the correct field names
-  const getRequiredFields = () => {
-    const baseFields = ["type", "title", "currentValue", "deadline"]; // currentValue is used as price
-
-    if (newOffer.type === "cask") {
-      return [...baseFields, "caskType", "vintageYear", "abv", "volume"];
-    } else if (newOffer.type === "bottle") {
-      return [...baseFields, "distillery", "packaging", "quantity", "volume"];
-    } else if (newOffer.type === "experience") {
-      return [
-        ...baseFields,
-        "packaging",
-        "duration",
-        "testing",
-        "participants",
-      ];
-    }
-    return baseFields;
-  };
-
-  const isAddFormValid = getRequiredFields().every(
-    (field) => newOffer[field] && newOffer[field].toString().trim() !== ""
-  );
 
   const handleTypeChange = (selectedType) => {
-    // Reset form when type changes, keeping only basic fields
     setNewOffer({
+      ...newOffer,
       type: selectedType,
       status: "active",
-      // Keep common fields that might be filled
       title: newOffer.title || "",
       description: newOffer.description || "",
       image: newOffer.image || null,
       purchaseValue: newOffer.purchaseValue || "",
       currentValue: newOffer.currentValue || "",
-      deadline: newOffer.deadline,
+      deadline: newOffer.deadline || "",
+      distillery: selectedType === "bottle" ? newOffer.distillery || "" : "",
+      caskType: selectedType === "cask" ? newOffer.caskType || "" : "",
+      vintageYear: selectedType === "cask" ? newOffer.vintageYear || "" : "",
+      abv: selectedType === "cask" ? newOffer.abv || "" : "",
+      volume: selectedType === "cask" ? newOffer.volume || "" : "",
+      packaging:
+        selectedType === "bottle" || selectedType === "experience"
+          ? newOffer.packaging || ""
+          : "",
+      quantity: selectedType === "bottle" ? newOffer.quantity || "" : "",
+      certificate: selectedType === "bottle" ? newOffer.certificate || "" : "",
+      duration: selectedType === "experience" ? newOffer.duration || "" : "",
+      testing: selectedType === "experience" ? newOffer.testing || "" : "",
+      participants:
+        selectedType === "experience" ? newOffer.participants || "" : "",
+      includes: selectedType === "experience" ? newOffer.includes || "" : "",
+      storageLocation: newOffer.storageLocation || "",
     });
   };
 
   return (
     <CommonModal
-      isOpen={isAddModalOpen}
-      onClose={() => {
-        setIsAddModalOpen(false);
-        setNewOffer({ type: "cask", status: "active" });
-      }}
-      title="Add Offer"
+      isOpen={isOpen}
+      onClose={onClose}
+      title={selectedToken ? `Edit Offer` : "Add Offer"}
       className="w-full overflow-hidden">
       <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
         <div className="p-6 space-y-6">
@@ -214,18 +291,22 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                   </div>
                 )}
               </div>
-
-              {/* Image Preview */}
               {newOffer.image && (
                 <div className="mt-3">
                   <img
-                    src={URL.createObjectURL(newOffer.image)}
+                    src={
+                      newOffer.image instanceof File
+                        ? URL.createObjectURL(newOffer.image)
+                        : newOffer.image
+                    }
                     alt="Preview"
                     className="w-full h-40 object-cover rounded-lg border border-gray-200"
                   />
                 </div>
               )}
             </div>
+
+            {/* Sliding Images */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Sliding Images
@@ -241,8 +322,8 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     setNewOffer({
                       ...newOffer,
                       images: [
-                        ...(newOffer.images || []), // আগের images
-                        ...Array.from(e.target.files), // নতুন upload করা images
+                        ...(newOffer.images || []),
+                        ...Array.from(e.target.files),
                       ],
                     })
                   }
@@ -265,14 +346,14 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                   </svg>
                 </label>
               </div>
-
-              {/* Image Previews with remove button */}
               {newOffer.images && newOffer.images.length > 0 && (
                 <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
                   {newOffer.images.map((img, index) => (
                     <div key={index} className="relative group">
                       <img
-                        src={URL.createObjectURL(img)}
+                        src={
+                          img instanceof File ? URL.createObjectURL(img) : img
+                        }
                         alt={`Preview ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg border border-gray-200"
                       />
@@ -298,7 +379,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
             {/* CASK TYPE FIELDS */}
             {newOffer.type === "cask" && (
               <>
-                {/* Cask Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cask Type
@@ -313,8 +393,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     }
                   />
                 </div>
-
-                {/* Title and Description */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -326,10 +404,7 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
                       value={newOffer.title || ""}
                       onChange={(e) =>
-                        setNewOffer({
-                          ...newOffer,
-                          title: e.target.value,
-                        })
+                        setNewOffer({ ...newOffer, title: e.target.value })
                       }
                     />
                   </div>
@@ -350,8 +425,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     />
                   </div>
                 </div>
-
-                {/* Vintage Year */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Vintage Year
@@ -362,15 +435,10 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
                     value={newOffer.vintageYear || ""}
                     onChange={(e) =>
-                      setNewOffer({
-                        ...newOffer,
-                        vintageYear: e.target.value,
-                      })
+                      setNewOffer({ ...newOffer, vintageYear: e.target.value })
                     }
                   />
                 </div>
-
-                {/* ABV and Volume */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -401,8 +469,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     />
                   </div>
                 </div>
-
-                {/* Storage Location */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Storage Location
@@ -436,14 +502,10 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
                     value={newOffer.title || ""}
                     onChange={(e) =>
-                      setNewOffer({
-                        ...newOffer,
-                        title: e.target.value,
-                      })
+                      setNewOffer({ ...newOffer, title: e.target.value })
                     }
                   />
                 </div>
-                {/* Distillery and Description */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -455,10 +517,7 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
                       value={newOffer.distillery || ""}
                       onChange={(e) =>
-                        setNewOffer({
-                          ...newOffer,
-                          distillery: e.target.value,
-                        })
+                        setNewOffer({ ...newOffer, distillery: e.target.value })
                       }
                     />
                   </div>
@@ -479,8 +538,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     />
                   </div>
                 </div>
-
-                {/* Packaging */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Packaging
@@ -495,8 +552,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     }
                   />
                 </div>
-
-                {/* Quantity and Volume */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -527,8 +582,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     />
                   </div>
                 </div>
-
-                {/* Certificate */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Certificate
@@ -549,7 +602,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
             {/* EXPERIENCE TYPE FIELDS */}
             {newOffer.type === "experience" && (
               <>
-                {/* Title and Description */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -561,10 +613,7 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
                       value={newOffer.title || ""}
                       onChange={(e) =>
-                        setNewOffer({
-                          ...newOffer,
-                          title: e.target.value,
-                        })
+                        setNewOffer({ ...newOffer, title: e.target.value })
                       }
                     />
                   </div>
@@ -585,8 +634,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     />
                   </div>
                 </div>
-
-                {/* Packaging */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Packaging
@@ -601,8 +648,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     }
                   />
                 </div>
-
-                {/* Duration and Testing */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -633,8 +678,6 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     />
                   </div>
                 </div>
-
-                {/* Participants and Includes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -704,10 +747,7 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
                     value={newOffer.currentValue || ""}
                     onChange={(e) =>
-                      setNewOffer({
-                        ...newOffer,
-                        currentValue: e.target.value,
-                      })
+                      setNewOffer({ ...newOffer, currentValue: e.target.value })
                     }
                   />
                 </div>
@@ -723,7 +763,7 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                 <input
                   type="date"
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
-                  value={newOffer.deadline}
+                  value={newOffer.deadline || ""}
                   onChange={(e) =>
                     setNewOffer({ ...newOffer, deadline: e.target.value })
                   }
@@ -747,17 +787,14 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-4 pt-6 mt-6 border-t border-gray-200">
             <button
-              onClick={() => {
-                setIsAddModalOpen(false);
-                setNewOffer({ type: "cask", status: "active" });
-              }}
+              onClick={onClose}
               className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
               Cancel
             </button>
             <button
-              onClick={handleAddOffer}
+              onClick={handleUpdateOffer}
               disabled={loading}
-              className="px-8 py-3 cursor-pointer bg-[#B8860B] text-white rounded-lg hover:bg-[#a0730b] transition-colors font-medium shadow-sm disabled:opacity-50">
+              className="px-8 py-3 bg-[#B8860B] flex gap-2 items-center text-white rounded-lg hover:bg-[#a0730b] transition-colors font-medium shadow-sm disabled:opacity-50">
               {loading && (
                 <svg
                   className="w-4 h-4 animate-spin"
@@ -776,7 +813,7 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               )}
-              {loading ? "Saving..." : "Save"}
+              {loading ? "Updating..." : "Update"}
             </button>
           </div>
         </div>
@@ -785,4 +822,4 @@ const AddOfer = ({ isAddModalOpen, setIsAddModalOpen }) => {
   );
 };
 
-export default AddOfer;
+export default UpdateOffer;

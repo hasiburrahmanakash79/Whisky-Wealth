@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDebounce } from "use-debounce";
 import apiClient from "../lib/api-client";
+import toast from "react-hot-toast";
 
 const useUserOffer = (
   initialPage = 1,
@@ -23,26 +24,60 @@ const useUserOffer = (
   const [totalPages, setTotalPages] = useState(1);
   const [totalOffers, setTotalOffers] = useState(0);
 
-  // Map API response to frontend format
-  const mapOfferData = (offer) => ({
-    id: offer.id,
-    offerName: offer.title || "N/A",
-    type: offer.type || "N/A",
-    price: offer.priceNumeric ? offer.priceNumeric.toString() : "0",
-    status: offer.isActive ? "Active" : "Inactive",
-    Deadline: offer.expiryDate ? offer.expiryDate.split("T")[0] : "N/A",
-    description: offer.description || "",
-    image: offer.image || "",
-    category: offer.category || "standard",
-    daysLeft: offer.daysLeft || 0,
-    details: {
-      distillery: offer.details?.distillery || "",
-      caskType: offer.details?.caskType || "",
-      vintage: offer.details?.vintage || "",
-      abv: offer.details?.abv || "",
-      volume: offer.details?.volume || "",
-    },
-  });
+  // Map API response to frontend format based on offer type
+  const mapOfferData = (offer) => {
+    const baseOffer = {
+      id: offer.id,
+      offerName: offer.title || "N/A",
+      type: offer.type || "N/A",
+      price: offer.priceNumeric ? offer.priceNumeric.toString() : "0",
+      status: offer.isActive ? "Active" : "Inactive",
+      Deadline: offer.expiryDate ? offer.expiryDate.split("T")[0] : "N/A",
+      description: offer.description || "",
+      image: offer.image || "",
+      images: offer.images || [],
+      category: offer.category || "standard",
+      daysLeft: offer.daysLeft || 0,
+      originalPrice: offer.originalPrice || 0,
+      location: offer.location || "",
+    };
+
+    // Dynamically build details based on offer type
+    let details = {};
+    if (offer.type === "cask") {
+      details = {
+        distillery: offer.details?.distillery || "",
+        caskType: offer.details?.caskType || "",
+        vintage: offer.details?.vintage || "",
+        abv: offer.details?.abv || "",
+        volume: offer.details?.volume || "",
+      };
+    } else if (offer.type === "bottle") {
+      details = {
+        distillery: offer.details?.distillery || "",
+        packaging: offer.details?.packaging || "",
+        quantity: offer.details?.quantity || "",
+        volume: offer.details?.volume || "",
+        certificate: offer.details?.certificate || "",
+      };
+    } else if (offer.type === "experience") {
+      details = {
+        packaging: offer.details?.packaging || "",
+        duration: offer.details?.duration || "",
+        testing: offer.details?.testing || "",
+        participants: offer.details?.participants || "",
+        includes: offer.details?.includes || "",
+      };
+    } else {
+      // Default case for unknown types
+      details = offer.details || {};
+    }
+
+    return {
+      ...baseOffer,
+      details,
+    };
+  };
 
   // Fetch offers from API
   const fetchOffers = useCallback(async () => {
@@ -55,8 +90,6 @@ const useUserOffer = (
           limit,
           search: debouncedSearch,
           type,
-          minPrice,
-          maxPrice,
         },
       });
       const mappedOffers = response.data.data.offers.map(mapOfferData);
@@ -69,45 +102,13 @@ const useUserOffer = (
     } finally {
       setLoading(false);
     }
-  }, [page, limit, debouncedSearch, type, minPrice, maxPrice]);
-
-  // Upload file to server
-  const uploadFile = async (file) => {
-    if (!file) return null;
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await apiClient.post("/offers", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response.data.url; // Expecting { url: string } in response
-    } catch (err) {
-      throw new Error(err.response?.data?.message || "Failed to upload image");
-    }
-  };
+  }, [page, limit, debouncedSearch, type]);
 
   // Add a new offer
   const addOffer = async (offerData) => {
     try {
       setLoading(true);
       setError(null);
-
-      console.log("offerData received:", offerData);
-
-      // Validate required fields
-      const requiredFields = [
-        "offerName",
-        "type",
-        "price",
-        "deadline",
-        "status",
-      ];
-      const missingFields = requiredFields.filter((field) => !offerData[field]);
-      if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
-      }
 
       // Build details object based on offer type
       let details = {};
@@ -118,8 +119,6 @@ const useUserOffer = (
           vintage: offerData.vintageYear || "",
           abv: offerData.abv || "",
           volume: offerData.volume || "",
-          storageLocation: offerData.storageLocation || "",
-          purchaseValue: offerData.purchaseValue || "",
         };
       } else if (offerData.type === "bottle") {
         details = {
@@ -128,7 +127,6 @@ const useUserOffer = (
           quantity: offerData.quantity || "",
           volume: offerData.volume || "",
           certificate: offerData.certificate || "",
-          purchaseValue: offerData.purchaseValue || "",
         };
       } else if (offerData.type === "experience") {
         details = {
@@ -137,7 +135,6 @@ const useUserOffer = (
           testing: offerData.testing || "",
           participants: offerData.participants || "",
           includes: offerData.includes || "",
-          purchaseValue: offerData.purchaseValue || "",
         };
       }
 
@@ -148,10 +145,12 @@ const useUserOffer = (
       formData.append("title", offerData.offerName);
       formData.append("type", offerData.type);
       formData.append("priceNumeric", Number(offerData.price));
-      formData.append("isActive", offerData.status === "Active");
       formData.append("expiryDate", offerData.deadline);
       formData.append("description", offerData.description || "");
-      formData.append("category", offerData.category || "standard");
+      formData.append("currentPrice", offerData.price || 0);
+      formData.append("originalPrice", offerData.purchaseValue || 0);
+      formData.append("isFeatured", true);
+      formData.append("location", offerData.storageLocation || "");
 
       // Add details as JSON string
       formData.append("details", JSON.stringify(details));
@@ -159,6 +158,12 @@ const useUserOffer = (
       // Add image file if present
       if (offerData.image && offerData.image instanceof File) {
         formData.append("offerImage", offerData.image);
+      }
+
+      if (offerData.images && offerData.images.length > 0) {
+        offerData.images.forEach((file) => {
+          formData.append("offerImages", file); // Append each image file
+        });
       }
 
       // Log FormData contents for debugging
@@ -177,9 +182,11 @@ const useUserOffer = (
         },
       });
 
+      toast("Offer added successfully");
+
       console.log("Response from POST /api/offers:", response.data);
 
-      await fetchOffers();
+      window.location.reload();
     } catch (err) {
       console.error("Error in addOffer:", {
         message: err.response?.data?.message || err.message,
@@ -194,57 +201,114 @@ const useUserOffer = (
       setLoading(false);
     }
   };
+
   // Update an existing offer
   const updateOffer = async (id, offerData) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Validate required fields
-      const requiredFields = [
-        "offerName",
-        "type",
-        "price",
-        "Deadline",
-        "status",
-      ];
-      const missingFields = requiredFields.filter((field) => !offerData[field]);
-      if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
+      // Build details object based on offer type
+      let details = {};
+      if (offerData.type === "cask") {
+        details = {
+          distillery: offerData.distillery || "",
+          caskType: offerData.caskType || "",
+          vintage: offerData.vintageYear || "",
+          abv: offerData.abv || "",
+          volume: offerData.volume || "",
+        };
+      } else if (offerData.type === "bottle") {
+        details = {
+          distillery: offerData.distillery || "",
+          packaging: offerData.packaging || "",
+          quantity: offerData.quantity || "",
+          volume: offerData.volume || "",
+          certificate: offerData.certificate || "",
+        };
+      } else if (offerData.type === "experience") {
+        details = {
+          packaging: offerData.packaging || "",
+          duration: offerData.duration || "",
+          testing: offerData.testing || "",
+          participants: offerData.participants || "",
+          includes: offerData.includes || "",
+        };
       }
 
-      // Prepare payload
-      const payload = {
-        title: offerData.offerName,
-        type: offerData.type,
-        priceNumeric: Number(offerData.price),
-        isActive: offerData.status === "Active",
-        expiryDate: offerData.Deadline,
-        description: offerData.description || "",
-        category: offerData.category || "standard",
-        details: {
-          distillery: offerData.details?.distillery || "",
-          caskType: offerData.details?.caskType || "",
-          vintage: offerData.details?.vintage || "",
-          abv: offerData.details?.abv || "",
-          volume: offerData.details?.volume || "",
+      // Create FormData object
+      const formData = new FormData();
+
+      // Add basic fields
+      formData.append("title", offerData.offerName || offerData.title);
+      formData.append("type", offerData.type);
+      formData.append(
+        "priceNumeric",
+        Number(offerData.price) || Number(offerData.currentValue)
+      );
+      formData.append("expiryDate", offerData.deadline || offerData.Deadline);
+      formData.append("description", offerData.description || "");
+      formData.append(
+        "currentPrice",
+        offerData.price || offerData.currentValue || 0
+      );
+      formData.append(
+        "originalPrice",
+        offerData.purchaseValue || offerData.originalPrice || 0
+      );
+      formData.append(
+        "isActive",
+        offerData.status === "Active" || offerData.status === "active"
+      );
+      formData.append("location", offerData.storageLocation || "");
+
+      // Add details as JSON string
+      formData.append("details", JSON.stringify(details));
+
+      // Add image file if present
+      if (offerData.image && offerData.image instanceof File) {
+        formData.append("offerImage", offerData.image);
+      } else if (offerData.image) {
+        formData.append("offerImage", offerData.image); // Keep existing image URL if no new file
+      }
+
+      if (offerData.images && offerData.images.length > 0) {
+        offerData.images.forEach((file) => {
+          formData.append("offerImages", file); // Append each image file
+        });
+      }
+
+      // Log FormData contents for debugging
+      console.log("FormData contents for update:");
+      for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(key, `File: ${value.name} (${value.size} bytes)`);
+        } else {
+          console.log(key, value);
+        }
+      }
+
+      const response = await apiClient.put(`/offers/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      };
+      });
 
-      // Handle file upload if present
-      if (offerData.image instanceof File) {
-        payload.image = await uploadFile(offerData.image);
-      } else {
-        payload.image = offerData.image || "";
-      }
+      toast("Offer updated successfully");
 
-      await apiClient.put(`/offers/${id}`, payload);
-      await fetchOffers(); // Refresh the offers list
+      console.log("Response from PUT /api/offers:", response.data);
+
+      window.location.reload();
     } catch (err) {
+      console.error("Error in updateOffer:", {
+        message: err.response?.data?.message || err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
       setError(
         err.response?.data?.message || err.message || "Failed to update offer"
       );
-      throw err; // Re-throw to handle in the component
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -256,7 +320,7 @@ const useUserOffer = (
       setLoading(true);
       setError(null);
       await apiClient.delete(`/offers/${id}`);
-      await fetchOffers(); // Refresh the offers list
+      window.location.reload();
     } catch (err) {
       setError(
         err.response?.data?.message || err.message || "Failed to delete offer"

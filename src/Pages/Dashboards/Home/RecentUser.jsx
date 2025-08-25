@@ -4,6 +4,7 @@ import CommonModal from "../../../components/Common/CommonModal";
 import useUserData from "../../../hook/useUserData";
 import apiClient from "../../../lib/api-client";
 import Pagination from "../../../Layouts/Pagination";
+import Loader from "../../../components/Common/Loader";
 
 const RecentUser = () => {
   const {
@@ -53,7 +54,6 @@ const RecentUser = () => {
     refetch();
   };
 
-  if (loading) return <p>Loading users...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
   console.log("s", selectedUser);
@@ -75,31 +75,45 @@ const RecentUser = () => {
             </tr>
           </thead>
           <tbody className="text-sm text-center">
-            {users?.map((user) => (
-              <tr key={user.id} className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left">{user?.name || "N/A"}</td>
-                <td className="py-4 px-4">{user?.email}</td>
-                <td className="py-3 px-4">{user?.casks || "N/A"}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <span
-                    className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                      user.status === "Active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}>
-                    {user.status || "N/A"}
-                  </span>
-                </td>
-                <td className="py-3 px-4 flex items-center justify-center gap-5">
-                  <button onClick={() => handleEdit(user)}>
-                    <RiEditBoxLine className="cursor-pointer w-5 h-5" />
-                  </button>
-                  <button onClick={() => handleDeleteClick(user)}>
-                    <RiDeleteBin5Line className="text-red-500 hover:text-red-700 transition cursor-pointer  w-5 h-5" />
-                  </button>
+            {loading ? (
+              <tr>
+                <td colSpan="6">
+                  <Loader text="Loading..." />
                 </td>
               </tr>
-            ))}
+            ) : users.length > 0 ? (
+              users?.map((user) => (
+                <tr key={user.id} className="border-t border-gray-200">
+                  <td className="py-3 px-4 text-left">{user?.name || "N/A"}</td>
+                  <td className="py-4 px-4">{user?.email}</td>
+                  <td className="py-3 px-4">{user?.casks || "N/A"}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span
+                      className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                        user.status === "Active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}>
+                      {user.status || "N/A"}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 flex items-center justify-center gap-5">
+                    <button onClick={() => handleEdit(user)}>
+                      <RiEditBoxLine className="cursor-pointer w-5 h-5" />
+                    </button>
+                    <button onClick={() => handleDeleteClick(user)}>
+                      <RiDeleteBin5Line className="text-red-500 hover:text-red-700 transition cursor-pointer  w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="px-6 py-4 text-center text-gray-600">
+                  No Data found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
         {/* Pagination */}

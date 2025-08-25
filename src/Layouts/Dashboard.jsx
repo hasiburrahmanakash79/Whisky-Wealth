@@ -13,7 +13,8 @@ import {
 import { FaRightFromBracket } from "react-icons/fa6";
 import { IconContext } from "react-icons";
 import Swal from "sweetalert2";
-
+import { removeAuthTokens } from "../lib/cookie-utils";
+import { useUser } from "../lib/UserContext";
 const Dashboard = () => {
   const location = useLocation();
 
@@ -28,6 +29,8 @@ const Dashboard = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         console.log("User logged out");
+        removeAuthTokens();
+        window.location.href = "/signin"; // Redirect to login page
       }
     });
   };
@@ -90,6 +93,7 @@ const Dashboard = () => {
   ];
 
   const adminMenus = Menus.filter((menu) => menu.role === "admin");
+  const { profileData } = useUser();
 
   return (
     <div className="flex text-black">
@@ -146,21 +150,25 @@ const Dashboard = () => {
         <div className=" py-4 flex justify-between items-center mb-5">
           {/* Left Section */}
           <div>
-            <h1 className="text-2xl font-semibold">Welcome, John 👋</h1>
+            <h1 className="text-2xl font-semibold">
+              Welcome, {profileData.name} 👋
+            </h1>
             <p className="text-sm ">Have a wonderful day!</p>
           </div>
 
           {/* Right Section */}
           <div className="flex items-center gap-x-4">
             <div className="w-12 h-12 rounded-full overflow-hidden">
-              <img
-                src="https://img.daisyui.com/images/profile/demo/wonderperson@192.webp"
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+              <Link to="/setting/profile">
+                <img
+                  src={profileData.profileImage}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </Link>
             </div>
             <div>
-              <span className="font-medium ">John Max</span>
+              <span className="font-medium ">{profileData.name}</span>
               <p className="text-gray-400 text-sm">Admin</p>
             </div>
           </div>
