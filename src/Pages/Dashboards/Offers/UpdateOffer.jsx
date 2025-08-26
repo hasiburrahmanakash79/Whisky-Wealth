@@ -112,7 +112,7 @@ const UpdateOffer = ({ isOpen, onClose, selectedToken }) => {
         deadline: newOffer.deadline,
         status: newOffer.status === "active" ? "Active" : "Inactive",
         description: newOffer.description,
-        category: newOffer.type === "experience" ? "experience" : "premium",
+        category: newOffer.category,
         distillery: newOffer.distillery,
         caskType: newOffer.caskType,
         vintageYear: newOffer.vintageYear,
@@ -166,6 +166,7 @@ const UpdateOffer = ({ isOpen, onClose, selectedToken }) => {
         selectedType === "experience" ? newOffer.participants || "" : "",
       includes: selectedType === "experience" ? newOffer.includes || "" : "",
       storageLocation: newOffer.storageLocation || "",
+      category: newOffer.category || "",
     });
   };
 
@@ -671,9 +672,9 @@ const UpdateOffer = ({ isOpen, onClose, selectedToken }) => {
                       type="text"
                       placeholder="12 Premium Whiskies"
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors"
-                      value={newOffer.testing || ""}
+                      value={newOffer.category || ""}
                       onChange={(e) =>
-                        setNewOffer({ ...newOffer, testing: e.target.value })
+                        setNewOffer({ ...newOffer, category: e.target.value })
                       }
                     />
                   </div>

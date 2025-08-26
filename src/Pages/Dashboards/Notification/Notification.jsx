@@ -60,7 +60,7 @@ const Notifications = () => {
   const handleClickNotification = async (item) => {
     if (!item.isRead) {
       try {
-        await apiClient.patch(`/notifications/${item.id}/read`);
+        await apiClient.put(`/notifications/${item.id}/read`);
         setNotifications((prev) =>
           prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
         );
@@ -74,7 +74,7 @@ const Notifications = () => {
 
   const markAllAsRead = async () => {
     try {
-      await apiClient.patch("/notifications/mark-all-read");
+      await apiClient.put("/notifications/mark-all-read");
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (err) {
