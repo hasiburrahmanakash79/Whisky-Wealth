@@ -132,10 +132,10 @@ const Dashboard = () => {
           ))}
         </ul>
 
-        <div className="mt-28 bottom-10 absolute w-full border-t border-gray-200 -ms-4 bg-[#F6F0E1] z-50">
+        <div className="bottom-0 absolute w-full border-t border-gray-200 -ms-4 bg-[#F6F0E1] z-50">
           <button
             onClick={handleLogout}
-            className={`flex cursor-pointer text-sm items-center justify-center  p-2 w-4/5 pt-7`}>
+            className={`flex cursor-pointer text-sm items-center justify-center  p-2 w-4/5 py-7`}>
             <li className="flex items-center justify-center gap-x-4 w-full">
               <FaRightFromBracket />
               <span className={`origin-left duration-200`}>Logout</span>
