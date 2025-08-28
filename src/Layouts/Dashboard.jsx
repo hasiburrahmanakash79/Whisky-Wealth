@@ -132,7 +132,7 @@ const Dashboard = () => {
           ))}
         </ul>
 
-        <div className="mt-28 bottom-10 absolute w-full border-t border-gray-200 -ms-4">
+        <div className="mt-28 bottom-10 absolute w-full border-t border-gray-200 -ms-4 bg-[#F6F0E1]">
           <button
             onClick={handleLogout}
             className={`flex cursor-pointer text-sm items-center justify-center  p-2 w-4/5 pt-7`}>
