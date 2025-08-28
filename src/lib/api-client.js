@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getCookie, setCookie, removeAuthTokens } from "./cookie-utils";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://10.10.12.58:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://whiskycaskclub.onrender.com/api";
 
 const apiClient = axios.create({
   baseURL: API_URL,
