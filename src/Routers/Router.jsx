@@ -15,10 +15,11 @@ import Referrals from "../Pages/Dashboards/Referrals/Referrals";
 import Orders from "../Pages/Dashboards/Orders/Orders";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute";
+import CaskManagement from "../Pages/Dashboards/Cask/CaskManagement";
 
 const router = createBrowserRouter([
   {
-    element: <PrivateRoute />, // সব Dashboard route protected
+    element: <PrivateRoute />,
     children: [
       {
         path: "/",
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
         children: [
           { path: "/", element: <Home /> },
           { path: "/user", element: <Users /> },
+          { path: "/cask", element: <CaskManagement /> },
           { path: "/offers", element: <Offers /> },
           { path: "/orders", element: <Orders /> },
           { path: "/referrals", element: <Referrals /> },
@@ -38,7 +40,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    element: <PublicRoute />, // login না করলে শুধু এগুলো দেখতে পারবে
+    element: <PublicRoute />,
     children: [
       { path: "/signin", element: <SignIn /> },
       { path: "/otp", element: <OtpVerification /> },

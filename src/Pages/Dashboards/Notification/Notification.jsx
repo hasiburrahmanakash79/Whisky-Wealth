@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import apiClient from "../../../lib/api-client";
 import useUserData from "../../../hook/useUserData";
 import Loader from "../../../components/Common/Loader";
+import toast from "react-hot-toast";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -106,7 +107,7 @@ const Notifications = () => {
       setNotifications(response.data.data.notifications);
       setPagination(response.data.data.pagination);
       setUnreadCount(response.data.data.unreadCount);
-      alert("Notification created successfully!");
+      toast.success("Notification created successfully!");
     } catch (err) {
       setError("Failed to create notification. Please try again.");
     }
@@ -138,7 +139,7 @@ const Notifications = () => {
     return <div className="text-red-500">{error}</div>;
   }
 
-  console.log("uiser", notifications);
+  console.log("notification", notifications);
 
   return (
     <div className="mx-auto p-6 bg-white min-h-screen">
@@ -337,7 +338,7 @@ const Notifications = () => {
 
           <button
             type="submit"
-            className="w-full bg-[#B8860B] text-white px-4 py-2 rounded-lg hover:bg-[#a0730b] transition"
+            className="w-full bg-[#B8860B] text-white px-4 py-2 rounded-lg hover:bg-[#a0730b] transition cursor-pointer"
             disabled={loading}>
             {loading ? "Creating..." : "Create Notification"}
           </button>

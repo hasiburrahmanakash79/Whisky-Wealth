@@ -1,4 +1,20 @@
+import { useEffect } from "react";
+
 const CommonModal = ({ isOpen, onClose, title, children }) => {
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    // Cleanup when modal unmounts
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -6,7 +22,8 @@ const CommonModal = ({ isOpen, onClose, title, children }) => {
       <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-xl relative">
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-black text-lg cursor-pointer">
+          className="absolute top-2 right-3 text-black text-lg cursor-pointer"
+        >
           ✕
         </button>
         <div className="p-10">
