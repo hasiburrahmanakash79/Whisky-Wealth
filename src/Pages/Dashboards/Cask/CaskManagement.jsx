@@ -34,6 +34,7 @@ const CaskManagement = () => {
   });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newCask, setNewCask] = useState({
+    type: "",
     name: "",
     distillery: "",
     year: "",
@@ -581,32 +582,34 @@ const CaskManagement = () => {
               </div>
             )}
           </div>
-<div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type
-              </label>
-              <div className="relative">
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors bg-white appearance-none"
-                  value={newCask.type}>
-                  <option value="cask">Cask</option>
-                  <option value="bottle">Bottle</option>
-                  <option value="experience">Experience</option>
-                </select>
-                <svg
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type
+            </label>
+            <div className="relative">
+              <select
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors bg-white appearance-none"
+                value={newCask.type}
+              >
+                <option value="cask">Cask</option>
+                <option value="bottle">Bottle</option>
+                <option value="experience">Experience</option>
+              </select>
+              <svg
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
             </div>
+          </div>
           <div className=" grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
