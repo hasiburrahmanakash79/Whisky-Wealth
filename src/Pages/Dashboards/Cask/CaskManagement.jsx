@@ -53,21 +53,21 @@ const CaskManagement = () => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select a valid image file");
         return;
       }
-      
+
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size should be less than 5MB');
+        toast.error("Image size should be less than 5MB");
         return;
       }
 
       // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-      
+
       // Update newCask state
       setNewCask({ ...newCask, caskImages: file });
     }
@@ -90,7 +90,7 @@ const CaskManagement = () => {
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      Object.keys(newCask).forEach(key => {
+      Object.keys(newCask).forEach((key) => {
         if (newCask[key] !== null && newCask[key] !== "") {
           formData.append(key, newCask[key]);
         }
@@ -98,7 +98,7 @@ const CaskManagement = () => {
 
       const response = await apiClient.post("/casks", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
 
@@ -106,7 +106,7 @@ const CaskManagement = () => {
       setFilteredCasks((prev) => [response.data.data.cask, ...prev]);
       toast.success("Cask added successfully!");
       setIsAddModalOpen(false);
-      
+
       // Reset form
       setNewCask({
         name: "",
@@ -122,7 +122,7 @@ const CaskManagement = () => {
         currentValue: "200",
         caskImages: null,
       });
-      
+
       // Clean up image preview
       if (imagePreview) {
         URL.revokeObjectURL(imagePreview);
@@ -443,11 +443,16 @@ const CaskManagement = () => {
                   </td>
                   <td className="py-3 px-4">
                     <span
-                      className={`inline-block px-3 py-1 rounded-full text-white text-xs sm:text-sm ${
-                        cask.status === "Ready"
-                          ? "bg-green-500"
-                          : "bg-yellow-500"
-                      }`}
+                      className={`inline-block px-3 py-1 rounded-full text-white text-xs sm:text-sm
+    ${
+      cask.status === "Ready"
+        ? "bg-green-600"
+        : cask.status === "Maturing"
+        ? "bg-yellow-600"
+        : cask.status === "Experience"
+        ? "bg-blue-600"
+        : "bg-gray-500"
+    }`}
                     >
                       {cask.status}
                     </span>
@@ -515,7 +520,7 @@ const CaskManagement = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Cask Image
             </label>
-            
+
             {/* Image Preview */}
             {imagePreview ? (
               <div className="relative">
@@ -565,9 +570,9 @@ const CaskManagement = () => {
                     </p>
                     <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
                   </div>
-                  <input 
-                    type="file" 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    className="hidden"
                     accept="image/*"
                     name="caskImages"
                     onChange={handleImageChange}
@@ -576,7 +581,32 @@ const CaskManagement = () => {
               </div>
             )}
           </div>
-
+<div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] transition-colors bg-white appearance-none"
+                  value={newCask.type}>
+                  <option value="cask">Cask</option>
+                  <option value="bottle">Bottle</option>
+                  <option value="experience">Experience</option>
+                </select>
+                <svg
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
           <div className=" grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
